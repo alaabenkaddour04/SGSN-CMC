@@ -1,0 +1,6 @@
+nohup: les entrées sont ignorées
+◇ injected env (7) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+Serveur démarré sur port 3000
+PostgreSQL connecté

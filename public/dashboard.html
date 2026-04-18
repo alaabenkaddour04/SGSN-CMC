@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGSN - CMC Nouaceur</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #3b82f6;
+            --bg: #f1f5f9;
+            --text: #0f172a;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); display: flex; height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { width: 260px; background: var(--primary); color: white; padding: 1.5rem; display: flex; flex-direction: column; }
+        .sidebar-brand { font-size: 1.5rem; font-weight: 800; margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; }
+        .sidebar-brand i { color: var(--secondary); }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px; color: #cbd5e1; text-decoration: none; border-radius: 8px; margin-bottom: 5px; transition: 0.3s; }
+        .nav-link.active, .nav-link:hover { background: #334155; color: white; }
+
+        /* Main Content */
+        .main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        .header { background: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .content { padding: 2rem; }
+
+        /* Stats Cards - Professional Look */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: white; padding: 1.5rem; border-radius: 12px; display: flex; align-items: center; gap: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-icon { width: 50px; height: 50px; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 20px; }
+
+        /* Table */
+        .table-card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th { text-align: left; padding: 12px; border-bottom: 2px solid #edf2f7; color: #64748b; font-size: 0.8rem; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #edf2f7; font-size: 0.9rem; }
+        .badge { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-brand"><i class="fas fa-graduation-cap"></i> SGSN <span>CMC</span></div>
+    <a href="#" class="nav-link active"><i class="fas fa-columns"></i> Dashboard</a>
+    <a href="#" class="nav-link"><i class="fas fa-user-friends"></i> Étudiants</a>
+    <a href="#" class="nav-link"><i class="fas fa-file-signature"></i> Notes</a>
+    <a href="#" class="nav-link"><i class="fas fa-calendar-check"></i> Présences</a>
+    <button style="margin-top:auto; background:#ef4444; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer;" onclick="location.href='index.html'">Déconnexion</button>
+</div>
+
+<div class="main">
+    <header class="header">
+        <h2 style="font-size: 1.1rem;">Espace Administration</h2>
+        <div id="user-info" style="font-weight: 600; font-size: 0.9rem;">Alaâ Benkaddour | <span style="color:var(--secondary)">Cloud Computing</span></div>
+    </header>
+
+    <div class="content">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#eff6ff; color:#3b82f6;"><i class="fas fa-users"></i></div>
+                <div>
+                    <div style="font-size: 1.5rem; font-weight: 700;" id="count-stagiaires">...</div>
+                    <div style="font-size: 0.8rem; color:#64748b;">Total Stagiaires</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#f0fdf4; color:#22c55e;"><i class="fas fa-chart-bar"></i></div>
+                <div>
+                    <div style="font-size: 1.5rem; font-weight: 700;">14.75</div>
+                    <div style="font-size: 0.8rem; color:#64748b;">Moyenne Promotion</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <h3>Liste des Stagiaires - Option Cloud</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom & Prénom</th>
+                        <th>Filière</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody id="stagiaires-list">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function loadData() {
+        const tbody = document.getElementById('stagiaires-list');
+        const countEl = document.getElementById('count-stagiaires');
+        
+        try {
+            // Fetch relative pour éviter les erreurs d'IP
+            const response = await fetch('/api/etudiants');
+            if (!response.ok) throw new Error('Erreur API');
+            const data = await response.json();
+
+            countEl.innerText = data.length;
+            tbody.innerHTML = data.map(s => `
+                <tr>
+                    <td>#${s.id}</td>
+                    <td style="font-weight:600;">${s.nom}</td>
+                    <td>${s.filiere || 'Cloud Computing'}</td>
+                    <td><span class="badge">Inscrit</span></td>
+                </tr>
+            `).join('');
+        } catch (err) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#ef4444; padding:20px;">Erreur de chargement des données.</td></tr>';
+            countEl.innerText = "0";
+        }
+    }
+    loadData();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SGSN CMC</title>
+<script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center min-h-screen">
+<div class="bg-slate-800/80 backdrop-blur p-10 rounded-3xl shadow-2xl w-full max-w-md border border-slate-700">
+  <div class="text-center mb-8">
+    <div class="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-900/40">
+      <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+    </div>
+    <h1 class="text-3xl font-black text-white tracking-tight">SGSN CMC</h1>
+    <p class="text-slate-400 text-sm mt-1">Système de Gestion Scolaire</p>
+  </div>
+  <div id="err" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl mb-4 text-sm text-center"></div>
+  <input id="email" type="email" placeholder="Email" class="w-full mb-3 p-4 rounded-xl bg-slate-900/80 text-white border border-slate-700 outline-none focus:border-blue-500 transition">
+  <input id="pass" type="password" placeholder="Mot de passe" class="w-full mb-6 p-4 rounded-xl bg-slate-900/80 text-white border border-slate-700 outline-none focus:border-blue-500 transition">
+  <button onclick="login()" id="btn" class="w-full bg-blue-600 hover:bg-blue-500 p-4 rounded-xl text-white font-bold transition shadow-lg shadow-blue-900/30">Se Connecter</button>
+  <p class="text-slate-600 text-xs text-center mt-6">© 2026 CMC Nouaceur — Infrastructure Digitale</p>
+</div>
+<script>
+async function login() {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('pass').value;
+  const btn = document.getElementById('btn');
+  const err = document.getElementById('err');
+  btn.textContent = 'Connexion...'; btn.disabled = true;
+  err.classList.add('hidden');
+  try {
+    const res = await fetch('/api/auth/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email, password})
+    });
+    const data = await res.json();
+    if (res.ok) {
+      localStorage.setItem('user', JSON.stringify(data));
+      const routes = {'Admin':'/admin/dashboard.html','Gestionnaire':'/gestion/dashboard.html','Professeur':'/prof/dashboard.html','Etudiant':'/student/dashboard.html'};
+      window.location.href = routes[data.role] || '/';
+    } else { throw new Error(data.message); }
+  } catch(e) {
+    err.textContent = e.message; err.classList.remove('hidden');
+    btn.textContent = 'Se Connecter'; btn.disabled = false;
+  }
+}
+</script>
+</body></html>
