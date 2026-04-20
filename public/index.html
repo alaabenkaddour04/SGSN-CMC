@@ -1,45 +1,145 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SGSN CMC</title>
-<script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center min-h-screen">
-<div class="bg-slate-800/80 backdrop-blur p-10 rounded-3xl shadow-2xl w-full max-w-md border border-slate-700">
-  <div class="text-center mb-8">
-    <div class="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-900/40">
-      <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGSN CMC | Connexion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; position: relative; overflow: hidden; }
+        .bg-shapes { position: absolute; width: 100%; height: 100%; overflow: hidden; z-index: 0; }
+        .shape { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4; animation: float 20s infinite; }
+        .shape-1 { width: 400px; height: 400px; background: #3b82f6; top: -100px; left: -100px; animation-delay: 0s; }
+        .shape-2 { width: 300px; height: 300px; background: #06b6d4; top: 50%; right: -50px; animation-delay: 5s; }
+        .shape-3 { width: 350px; height: 350px; background: #8b5cf6; bottom: -100px; left: 30%; animation-delay: 10s; }
+        @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -30px) scale(1.1); } 66% { transform: translate(-20px, 20px) scale(0.9); } }
+    </style>
+</head>
+<body>
+    <div class="bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
     </div>
-    <h1 class="text-3xl font-black text-white tracking-tight">SGSN CMC</h1>
-    <p class="text-slate-400 text-sm mt-1">Système de Gestion Scolaire</p>
-  </div>
-  <div id="err" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl mb-4 text-sm text-center"></div>
-  <input id="email" type="email" placeholder="Email" class="w-full mb-3 p-4 rounded-xl bg-slate-900/80 text-white border border-slate-700 outline-none focus:border-blue-500 transition">
-  <input id="pass" type="password" placeholder="Mot de passe" class="w-full mb-6 p-4 rounded-xl bg-slate-900/80 text-white border border-slate-700 outline-none focus:border-blue-500 transition">
-  <button onclick="login()" id="btn" class="w-full bg-blue-600 hover:bg-blue-500 p-4 rounded-xl text-white font-bold transition shadow-lg shadow-blue-900/30">Se Connecter</button>
-  <p class="text-slate-600 text-xs text-center mt-6">© 2026 CMC Nouaceur — Infrastructure Digitale</p>
-</div>
-<script>
-async function login() {
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('pass').value;
-  const btn = document.getElementById('btn');
-  const err = document.getElementById('err');
-  btn.textContent = 'Connexion...'; btn.disabled = true;
-  err.classList.add('hidden');
-  try {
-    const res = await fetch('/api/auth/login', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({email, password})
-    });
-    const data = await res.json();
-    if (res.ok) {
-      localStorage.setItem('user', JSON.stringify(data));
-      const routes = {'Admin':'/admin/dashboard.html','Gestionnaire':'/gestion/dashboard.html','Professeur':'/prof/dashboard.html','Etudiant':'/student/dashboard.html'};
-      window.location.href = routes[data.role] || '/';
-    } else { throw new Error(data.message); }
-  } catch(e) {
-    err.textContent = e.message; err.classList.remove('hidden');
-    btn.textContent = 'Se Connecter'; btn.disabled = false;
-  }
-}
-</script>
-</body></html>
+
+    <div class="glass p-8 md:p-12 w-full max-w-md z-10 animate-fade-in">
+        <!-- Logo CMC -->
+        <div class="text-center mb-8">
+            <div class="mb-6 flex justify-center">
+                <img src="https://cmc.ac.ma/sites/default/files/2023-01/logo-cmc.png" alt="CMC Logo" 
+                     class="h-20 w-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-300 bg-white/10 p-3 rounded-2xl"
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzNiODJmNiIgcng9IjE1Ii8+PHRleHQgeD0iNTAiIHk9IjY1IiBmb250LXNpemU9IjQwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+Q01DPC90ZXh0Pjwvc3ZnPg=='">
+            </div>
+            <h1 class="text-3xl font-extrabold text-white mb-2 tracking-tight">SGSN <span class="text-blue-400">CMC</span></h1>
+            <p class="text-slate-400 text-sm">Système de Gestion Scolaire Numérique</p>
+            <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full">
+                <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                <span class="text-xs text-blue-400 font-medium">Cloud Computing ID</span>
+            </div>
+        </div>
+
+        <form id="loginForm" class="space-y-5">
+            <div>
+                <label class="block text-slate-300 text-sm font-medium mb-2">Adresse Email</label>
+                <div class="relative">
+                    <input type="email" id="email" required 
+                        class="w-full pl-11 pr-4 py-3.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        placeholder="exemple@cmc.ma">
+                    <svg class="absolute left-4 top-3.5 h-5 w-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-slate-300 text-sm font-medium mb-2">Mot de passe</label>
+                <div class="relative">
+                    <input type="password" id="pass" required 
+                        class="w-full pl-11 pr-12 py-3.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        placeholder="••••••••">
+                    <svg class="absolute left-4 top-3.5 h-5 w-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div id="errorMsg" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-lg text-sm text-center"></div>
+
+            <button type="submit" id="submitBtn" 
+                class="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-500/30 transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 group">
+                <span id="btnText">Se Connecter</span>
+                <svg id="btnArrow" class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                </svg>
+            </button>
+        </form>
+
+        <div class="mt-8 pt-6 border-t border-slate-700/50">
+            <p class="text-center text-slate-500 text-xs mb-4 uppercase tracking-wider">Comptes de Démo</p>
+            <div class="grid grid-cols-2 gap-3 text-xs">
+                <div class="p-3 bg-slate-800/50 rounded-lg text-center border border-slate-700/50 hover:border-blue-500/30 transition-colors">
+                    <span class="block text-blue-400 font-bold mb-1">👤 Admin</span>
+                    <span class="text-slate-400">kawtar@sgsn.ma</span>
+                </div>
+                <div class="p-3 bg-slate-800/50 rounded-lg text-center border border-slate-700/50 hover:border-green-500/30 transition-colors">
+                    <span class="block text-green-400 font-bold mb-1">🎓 Étudiant</span>
+                    <span class="text-slate-400">alaa@sgsn.ma</span>
+                </div>
+            </div>
+            <p class="text-center text-slate-600 text-xs mt-3">Mot de passe: <span class="font-mono text-slate-400">123456</span></p>
+        </div>
+
+        <div class="mt-8 text-center">
+            <p class="text-slate-600 text-xs">© 2026 CMC Nouaceur — Infrastructure Digitale</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const errorDiv = document.getElementById('errorMsg');
+            
+            btn.disabled = true;
+            btnText.textContent = 'Connexion...';
+            errorDiv.classList.add('hidden');
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('email').value,
+                        password: document.getElementById('pass').value
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    localStorage.setItem('user', JSON.stringify(data));
+                    btnText.textContent = 'Redirection...';
+                    const routes = {
+                        'Admin': '/admin/dashboard.html',
+                        'Gestionnaire': '/gestion/dashboard.html',
+                        'Professeur': '/prof/dashboard.html',
+                        'Etudiant': '/student/dashboard.html'
+                    };
+                    setTimeout(() => window.location.href = routes[data.role] || '/', 500);
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (err) {
+                errorDiv.textContent = err.message;
+                errorDiv.classList.remove('hidden');
+                btn.disabled = false;
+                btnText.textContent = 'Se Connecter';
+            }
+        });
+    </script>
+</body>
+</html>

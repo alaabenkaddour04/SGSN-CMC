@@ -1,143 +1,264 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SGSN CMC | Gestion</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-  * { font-family: 'Inter', sans-serif; }
-  .nav-btn { transition: all 0.2s; cursor: pointer; }
-  .nav-btn:hover { background: rgba(255,255,255,0.08); }
-  .nav-btn.active { background: #ea580c; color: white; }
-  .section { display: none; }
-  .section.active { display: block; animation: fadeIn 0.3s ease; }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-  .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; }
-  input, select { background: #0f172a; border: 1px solid #334155; color: white; border-radius: 10px; padding: 10px 14px; outline: none; width: 100%; }
-  .btn { background: #ea580c; color: white; padding: 11px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; border: none; font-size: 14px; }
-  .btn:hover { background: #c2410c; }
-  .toast { position: fixed; bottom: 24px; right: 24px; background: #1e293b; border: 1px solid #334155; color: white; padding: 14px 20px; border-radius: 12px; font-size: 14px; z-index: 999; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGSN CMC | Gestionnaire</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #0f172a; color: white; }
+        .glass { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; }
+        .sidebar { width: 260px; background: rgba(15, 23, 42, 0.95); border-right: 1px solid rgba(255,255,255,0.1); height: 100vh; position: fixed; left: 0; top: 0; }
+        .main { margin-left: 260px; padding: 2rem; }
+        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1.25rem; margin: 0.25rem 0.75rem; border-radius: 0.75rem; color: #94a3b8; cursor: pointer; transition: all 0.3s; }
+        .nav-item:hover, .nav-item.active { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 2rem; width: 90%; max-width: 500px; }
+        .btn { padding: 0.625rem 1.25rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-amber { background: #f59e0b; color: white; }
+        .btn-danger { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .input { width: 100%; padding: 0.75rem; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: white; margin-top: 0.25rem; }
+        .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: 0.75rem; color: white; font-weight: 500; transform: translateX(400px); transition: transform 0.3s; z-index: 2000; }
+        .toast.show { transform: translateX(0); }
+        .toast.success { background: #10b981; }
+    </style>
 </head>
-<body style="background:#0f172a; color:white; display:flex; height:100vh; overflow:hidden;">
-<aside style="width:240px; background:#1e293b; border-right:1px solid #334155; padding:24px 16px; display:flex; flex-direction:column; flex-shrink:0;">
-  <div style="margin-bottom:32px; padding:0 8px;">
-    <div style="font-size:20px; font-weight:900; color:#ea580c; font-style:italic;">SGSN CMC</div>
-    <div style="font-size:11px; color:#64748b;">Système de Gestion</div>
-  </div>
-  <nav style="flex:1; display:flex; flex-direction:column; gap:4px;">
-    <div class="nav-btn active" onclick="showSection('absences',this)" style="padding:10px 12px; border-radius:10px; font-size:14px; font-weight:500; display:flex; align-items:center; gap:10px;">📋 Gestion Absences</div>
-    <div class="nav-btn" onclick="showSection('emploi',this)" style="padding:10px 12px; border-radius:10px; font-size:14px; font-weight:500; color:#94a3b8; display:flex; align-items:center; gap:10px;">📅 Emplois du Temps</div>
-    <div class="nav-btn" onclick="showSection('rapports',this)" style="padding:10px 12px; border-radius:10px; font-size:14px; font-weight:500; color:#94a3b8; display:flex; align-items:center; gap:10px;">📊 Rapports</div>
-  </nav>
-  <div style="border-top:1px solid #334155; padding-top:16px;">
-    <div class="nav-btn" onclick="logout()" style="padding:10px 12px; border-radius:10px; font-size:14px; color:#ef4444; display:flex; align-items:center; gap:10px;">🚪 Déconnexion</div>
-  </div>
-</aside>
-<main style="flex:1; overflow-y:auto; padding:32px 40px;">
-  <header style="margin-bottom:32px;">
-    <h2 style="font-size:28px; font-weight:800; margin:0;">Bonjour, <span id="gestName" style="color:#fb923c;"></span></h2>
-    <p style="color:#64748b; font-size:14px; margin-top:4px;">Gestion des absences et emplois du temps</p>
-  </header>
-  <div id="sec-absences" class="section active">
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px;">
-      <div class="card" style="padding:28px;">
-        <h3 style="font-weight:700; font-size:16px; color:#fb923c; margin-bottom:20px;">📋 Absences du Jour</h3>
-        <div id="absencesList" style="display:flex; flex-direction:column; gap:10px;"></div>
-        <button class="btn" onclick="genererRapport()" style="margin-top:20px; width:100%;">📄 Générer Rapport</button>
-      </div>
-      <div class="card" style="padding:28px;">
-        <h3 style="font-weight:700; font-size:16px; color:#60a5fa; margin-bottom:20px;">✏️ Marquer une Absence</h3>
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <div><label style="font-size:12px; color:#64748b; font-weight:600; display:block; margin-bottom:6px;">Stagiaire</label><select id="abs-stagiaire"></select></div>
-          <div><label style="font-size:12px; color:#64748b; font-weight:600; display:block; margin-bottom:6px;">Module</label>
-            <select id="abs-module">
-              <option value="1">Cloud Computing</option>
-              <option value="2">Réseaux</option>
-              <option value="3">Sécurité</option>
-              <option value="4">Linux Admin</option>
-            </select>
-          </div>
-          <div style="display:flex; align-items:center; gap:10px;"><input type="checkbox" id="abs-justifiee" style="width:auto; accent-color:#ea580c;"><label style="font-size:14px; color:#94a3b8;">Absence justifiée</label></div>
-          <button class="btn" onclick="marquerAbsence()" style="width:100%;">Enregistrer Absence</button>
+<body>
+    <div id="toast" class="toast"></div>
+    
+    <aside class="sidebar">
+        <div class="p-6 border-b border-white/10">
+            <div class="flex items-center gap-3">
+                <img src="https://cmc.ac.ma/sites/default/files/2023-01/logo-cmc.png" class="h-10 bg-white/10 rounded-lg p-1" onerror="this.style.display='none'">
+                <div>
+                    <h1 class="font-bold text-lg text-white">SGSN CMC</h1>
+                    <p class="text-xs text-amber-400">Gestionnaire</p>
+                </div>
+            </div>
         </div>
-      </div>
+        <nav class="py-4">
+            <div class="nav-item active" onclick="showSection('absences')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Absences
+            </div>
+            <div class="nav-item" onclick="showSection('emploi')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Emploi du Temps
+            </div>
+            <div class="nav-item" onclick="logout()">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                Déconnexion
+            </div>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-2xl font-bold">Bonjour, <span id="userName" class="text-amber-400"></span></h2>
+                <p class="text-slate-400 text-sm mt-1">Gestion des absences et emplois du temps</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="openModal('addAbsenceModal')" class="btn btn-amber">+ Absence</button>
+                <button onclick="openModal('addEmploiModal')" class="btn btn-amber">+ Emploi</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="glass p-6">
+                <h3 class="text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Absences Récentes
+                </h3>
+                <div id="absencesList" class="space-y-3"></div>
+            </div>
+            <div class="glass p-6">
+                <h3 class="text-lg font-bold text-blue-400 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    Emploi du Temps
+                </h3>
+                <div id="emploiList" class="space-y-3"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Absence Modal -->
+    <div id="addAbsenceModal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold mb-6 text-amber-400">Ajouter Absence</h3>
+            <form onsubmit="saveAbsence(event)">
+                <div class="mb-4">
+                    <label class="block text-sm text-slate-400 mb-1">Stagiaire</label>
+                    <select name="stagiaire_id" id="absStagiaire" class="input" required></select>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm text-slate-400 mb-1">Module</label>
+                    <select name="module_id" id="absModule" class="input" required></select>
+                </div>
+                <div class="flex gap-3 justify-end">
+                    <button type="button" onclick="closeModal('addAbsenceModal')" class="btn text-slate-300">Annuler</button>
+                    <button type="submit" class="btn btn-amber">Enregistrer</button>
+                </div>
+            </form>
+        </div>
     </div>
-  </div>
-  <div id="sec-emploi" class="section">
-    <h3 style="font-size:20px; font-weight:700; margin-bottom:24px;">📅 Emploi du Temps</h3>
-    <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px;" id="emploi-grid"></div>
-  </div>
-  <div id="sec-rapports" class="section">
-    <h3 style="font-size:20px; font-weight:700; margin-bottom:24px;">📊 Rapports</h3>
-    <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px; margin-bottom:24px;">
-      <div class="card" style="padding:28px;"><div style="font-size:32px; margin-bottom:12px;">📋</div><h4 style="font-weight:700; margin-bottom:8px;">Rapport Mensuel</h4><p style="color:#64748b; font-size:14px; margin-bottom:20px;">Statistiques absences du mois.</p><button class="btn" onclick="genererRapportMensuel()" style="width:100%;">Générer</button></div>
-      <div class="card" style="padding:28px;"><div style="font-size:32px; margin-bottom:12px;">👥</div><h4 style="font-weight:700; margin-bottom:8px;">Par Stagiaire</h4><p style="color:#64748b; font-size:14px; margin-bottom:20px;">Détail par stagiaire.</p><button class="btn" onclick="genererRapportParStagiaire()" style="width:100%; background:#7c3aed;">Générer</button></div>
+
+    <!-- Add Emploi Modal -->
+    <div id="addEmploiModal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold mb-6 text-blue-400">Ajouter Séance</h3>
+            <form onsubmit="saveEmploi(event)">
+                <div class="mb-4">
+                    <label class="block text-sm text-slate-400 mb-1">Jour</label>
+                    <select name="jour" class="input" required>
+                        <option value="Lundi">Lundi</option>
+                        <option value="Mardi">Mardi</option>
+                        <option value="Mercredi">Mercredi</option>
+                        <option value="Jeudi">Jeudi</option>
+                        <option value="Vendredi">Vendredi</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-1">Début</label>
+                        <input type="time" name="heure_debut" class="input" required value="08:30">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-1">Fin</label>
+                        <input type="time" name="heure_fin" class="input" required value="11:00">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm text-slate-400 mb-1">Module</label>
+                    <select name="module_id" id="empModule" class="input" required></select>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm text-slate-400 mb-1">Salle</label>
+                    <input type="text" name="salle" class="input" required placeholder="Salle 102">
+                </div>
+                <div class="flex gap-3 justify-end">
+                    <button type="button" onclick="closeModal('addEmploiModal')" class="btn text-slate-300">Annuler</button>
+                    <button type="submit" class="btn btn-amber">Enregistrer</button>
+                </div>
+            </form>
+        </div>
     </div>
-    <div id="rapport-box" class="card" style="padding:28px; display:none;"></div>
-  </div>
-</main>
-<script>
-const user = JSON.parse(localStorage.getItem('user'));
-if (!user || user.role !== 'Gestionnaire') location.href = '/';
-document.getElementById('gestName').innerText = user.nom;
-function logout() { localStorage.clear(); location.href='/'; }
-function showToast(msg,color='#22c55e') { const t=document.createElement('div'); t.className='toast'; t.style.color=color; t.innerText=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3000); }
-function showSection(id,el) {
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>{b.classList.remove('active');b.style.color='#94a3b8';});
-  document.getElementById('sec-'+id).classList.add('active');
-  el.classList.add('active'); el.style.color='white';
-  if(id==='emploi') loadEmploi();
-}
-function loadAbsences() {
-  fetch('/api/stagiaires').then(r=>r.json()).then(stags=>{
-    document.getElementById('abs-stagiaire').innerHTML=stags.map(s=>`<option value="${s.stagiaire_id}">${s.nom}</option>`).join('');
-    const div=document.getElementById('absencesList');
-    Promise.all(stags.map(s=>fetch('/api/absences/'+s.stagiaire_id).then(r=>r.json()).then(a=>({...s,abs:a})))).then(all=>{
-      div.innerHTML=all.map(s=>`<div style="background:#0f172a; padding:14px 16px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; border-left:3px solid ${s.abs.length>0?'#ea580c':'#22c55e'};"><span style="font-weight:500; font-size:14px;">${s.nom}</span><span style="font-weight:700; color:${s.abs.length>0?'#fb923c':'#4ade80'};">${s.abs.length>0?s.abs.length+' absence(s)':'Présent'}</span></div>`).join('');
-    });
-  });
-}
-function marquerAbsence() {
-  const stagId=document.getElementById('abs-stagiaire').value;
-  const modId=document.getElementById('abs-module').value;
-  const justifiee=document.getElementById('abs-justifiee').checked;
-  fetch('/api/absences/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stagiaire_id:stagId,module_id:modId,justifiee})})
-    .then(()=>{ showToast('Absence enregistrée!'); loadAbsences(); })
-    .catch(()=>showToast('Erreur!','#ef4444'));
-}
-function genererRapport() { showSection('rapports',document.querySelectorAll('.nav-btn')[2]); setTimeout(genererRapportMensuel,300); }
-function genererRapportMensuel() {
-  const box=document.getElementById('rapport-box'); box.style.display='block'; box.innerHTML='<p style="color:#64748b;">Génération...</p>';
-  fetch('/api/stagiaires').then(r=>r.json()).then(stags=>{
-    Promise.all(stags.map(s=>fetch('/api/absences/'+s.stagiaire_id).then(r=>r.json()).then(a=>({...s,abs:a})))).then(all=>{
-      const total=all.reduce((s,x)=>s+x.abs.length,0);
-      const nonJust=all.reduce((s,x)=>s+x.abs.filter(a=>!a.justifiee).length,0);
-      box.innerHTML=`<h4 style="font-weight:700; margin-bottom:20px;">📋 Rapport Mensuel — ${new Date().toLocaleDateString('fr-FR')}</h4><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px;"><div style="background:#0f172a; padding:16px; border-radius:10px; text-align:center;"><div style="font-size:32px; font-weight:900; color:#fb923c;">${total}</div><div style="font-size:12px; color:#64748b;">Total</div></div><div style="background:#0f172a; padding:16px; border-radius:10px; text-align:center;"><div style="font-size:32px; font-weight:900; color:#ef4444;">${nonJust}</div><div style="font-size:12px; color:#64748b;">Non justifiées</div></div><div style="background:#0f172a; padding:16px; border-radius:10px; text-align:center;"><div style="font-size:32px; font-weight:900; color:#eab308;">${total-nonJust}</div><div style="font-size:12px; color:#64748b;">Justifiées</div></div></div><table style="width:100%; border-collapse:collapse;"><thead><tr style="background:#0f172a;"><th style="padding:12px 16px; text-align:left; color:#64748b; font-size:12px;">Stagiaire</th><th style="padding:12px 16px; text-align:center; color:#64748b; font-size:12px;">Total</th><th style="padding:12px 16px; text-align:center; color:#64748b; font-size:12px;">Non just.</th><th style="padding:12px 16px; text-align:center; color:#64748b; font-size:12px;">Just.</th></tr></thead><tbody>${all.map(s=>`<tr style="border-top:1px solid #334155;"><td style="padding:14px 16px; font-weight:500;">${s.nom}</td><td style="padding:14px 16px; text-align:center; color:#fb923c; font-weight:700;">${s.abs.length}</td><td style="padding:14px 16px; text-align:center; color:#ef4444;">${s.abs.filter(a=>!a.justifiee).length}</td><td style="padding:14px 16px; text-align:center; color:#eab308;">${s.abs.filter(a=>a.justifiee).length}</td></tr>`).join('')}</tbody></table>`;
-      showToast('Rapport généré!');
-    });
-  });
-}
-function genererRapportParStagiaire() {
-  const box=document.getElementById('rapport-box'); box.style.display='block'; box.innerHTML='<p style="color:#64748b;">Génération...</p>';
-  fetch('/api/stagiaires').then(r=>r.json()).then(stags=>{
-    Promise.all(stags.map(s=>fetch('/api/absences/'+s.stagiaire_id).then(r=>r.json()).then(a=>({...s,abs:a})))).then(all=>{
-      box.innerHTML=`<h4 style="font-weight:700; margin-bottom:20px;">👥 Rapport Par Stagiaire — ${new Date().toLocaleDateString('fr-FR')}</h4><div style="display:flex; flex-direction:column; gap:16px;">${all.map(s=>`<div style="background:#0f172a; padding:20px; border-radius:12px;"><div style="font-weight:700; font-size:15px; margin-bottom:12px; color:#c084fc;">${s.nom}</div>${s.abs.length===0?'<span style="color:#4ade80; font-size:13px;">✓ Aucune absence</span>':s.abs.map(a=>`<div style="display:flex; justify-content:space-between; padding:8px 12px; background:#1e293b; border-radius:8px; margin-bottom:6px;"><span style="font-size:13px;">${a.nom_module}</span><span style="font-size:12px; color:${a.justifiee?'#eab308':'#ef4444'};">${a.justifiee?'Justifiée':'Non justifiée'}</span></div>`).join('')}</div>`).join('')}</div>`;
-      showToast('Rapport généré!');
-    });
-  });
-}
-function loadEmploi() {
-  fetch('/api/emploi/1').then(r=>r.json()).then(data=>{
-    const jours=[...new Set(data.map(e=>e.jour))];
-    const colors={Lundi:'#60a5fa',Mardi:'#4ade80',Mercredi:'#c084fc',Jeudi:'#fb923c'};
-    document.getElementById('emploi-grid').innerHTML=jours.map(jour=>{
-      const s=data.filter(e=>e.jour===jour);
-      return `<div class="card" style="padding:24px;"><h4 style="font-weight:700; color:${colors[jour]||'#60a5fa'}; margin-bottom:16px;">${jour}</h4>${s.map(x=>`<div style="background:#0f172a; padding:14px 16px; border-radius:10px; margin-bottom:8px; display:flex; justify-content:space-between;"><div><div style="font-weight:600; font-size:14px;">${x.nom_module}</div><div style="color:#64748b; font-size:12px;">${x.salle}</div></div><div style="text-align:right;"><div style="color:${colors[jour]||'#60a5fa'}; font-weight:600;">${x.heure_debut.slice(0,5)}</div><div style="color:#64748b; font-size:12px;">${x.heure_fin.slice(0,5)}</div></div></div>`).join('')}</div>`;
-    }).join('');
-  });
-}
-loadAbsences();
-</script>
-</body></html>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || user.role !== 'Gestionnaire') location.href = '/';
+        document.getElementById('userName').innerText = user.nom.split(' ')[0];
+
+        function logout() { localStorage.clear(); location.href = '/'; }
+        function showToast(msg, type='success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.className = 'toast ' + type; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        async function loadSelects() {
+            const [stagiaires, modules] = await Promise.all([
+                fetch('/api/stagiaires').then(r=>r.json()),
+                fetch('/api/modules').then(r=>r.json())
+            ]);
+            
+            document.getElementById('absStagiaire').innerHTML = stagiaires.map(s=>`<option value="${s.stagiaire_id}">${s.nom}</option>`).join('');
+            document.getElementById('absModule').innerHTML = modules.map(m=>`<option value="${m.id}">${m.nom_module}</option>`).join('');
+            document.getElementById('empModule').innerHTML = modules.map(m=>`<option value="${m.id}">${m.nom_module}</option>`).join('');
+        }
+
+        async function loadAbsences() {
+            const res = await fetch('/api/absences');
+            const data = await res.json();
+            document.getElementById('absencesList').innerHTML = data.slice(0,5).map(a=>`
+                <div class="flex justify-between items-center bg-slate-800/50 p-4 rounded-xl border-l-4 ${a.justifiee ? 'border-green-500' : 'border-red-500'}">
+                    <div>
+                        <span class="font-bold text-white block">${a.stagiaire}</span>
+                        <span class="text-xs text-slate-400">${a.nom_module} • ${a.date_absence.split('T')[0]}</span>
+                    </div>
+                    <div class="flex gap-2">
+                        ${!a.justifiee ? `<button onclick="justifier(${a.id})" class="text-amber-400 hover:text-amber-300 text-sm">Justifier</button>` : '<span class="text-green-400 text-sm">✓</span>'}
+                        <button onclick="deleteAbsence(${a.id})" class="text-red-400 hover:text-red-300 text-sm">×</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadEmploi() {
+            const res = await fetch('/api/emploi/1');
+            const data = await res.json();
+            document.getElementById('emploiList').innerHTML = data.map(e=>`
+                <div class="flex justify-between items-center bg-slate-800/50 p-4 rounded-xl hover:bg-slate-800 transition">
+                    <div>
+                        <span class="font-bold text-blue-400">${e.jour}</span>
+                        <span class="text-slate-400 text-sm ml-2">${e.heure_debut.slice(0,5)} - ${e.heure_fin.slice(0,5)}</span>
+                        <p class="text-white mt-1">${e.nom_module}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <span class="text-xs bg-slate-700 px-3 py-1 rounded-lg text-slate-300">${e.salle}</span>
+                        <button onclick="deleteEmploi(${e.id})" class="text-red-400 hover:text-red-300">×</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function saveAbsence(e) {
+            e.preventDefault();
+            const f = e.target;
+            try {
+                await fetch('/api/absences', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ stagiaire_id: f.stagiaire_id.value, module_id: f.module_id.value })
+                });
+                showToast('Absence ajoutée!');
+                closeModal('addAbsenceModal'); loadAbsences();
+            } catch(e) { showToast('Erreur', 'error'); }
+        }
+
+        async function saveEmploi(e) {
+            e.preventDefault();
+            const f = e.target;
+            try {
+                await fetch('/api/emploi', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        classe_id: 1,
+                        jour: f.jour.value,
+                        heure_debut: f.heure_debut.value,
+                        heure_fin: f.heure_fin.value,
+                        module_id: f.module_id.value,
+                        salle: f.salle.value
+                    })
+                });
+                showToast('Séance ajoutée!');
+                closeModal('addEmploiModal'); loadEmploi();
+            } catch(e) { showToast('Erreur', 'error'); }
+        }
+
+        async function justifier(id) {
+            await fetch(`/api/absences/${id}/justifier`, {method: 'PUT'});
+            showToast('Justifiée!'); loadAbsences();
+        }
+
+        async function deleteAbsence(id) {
+            if (!confirm('Supprimer?')) return;
+            await fetch(`/api/absences/${id}`, {method: 'DELETE'});
+            showToast('Supprimée!'); loadAbsences();
+        }
+
+        async function deleteEmploi(id) {
+            if (!confirm('Supprimer?')) return;
+            await fetch(`/api/emploi/${id}`, {method: 'DELETE'});
+            showToast('Supprimée!'); loadEmploi();
+        }
+
+        loadSelects(); loadAbsences(); loadEmploi();
+    </script>
+</body>
+</html>

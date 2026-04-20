@@ -1,139 +1,162 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SGSN CMC | Étudiant</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-  * { font-family: 'Inter', sans-serif; }
-  .nav-btn { transition: all 0.2s; cursor: pointer; }
-  .nav-btn:hover { background: rgba(255,255,255,0.08); }
-  .nav-btn.active { background: #7c3aed; color: white; }
-  .section { display: none; }
-  .section.active { display: block; animation: fadeIn 0.3s ease; }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-  .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; }
-  .progress-bar { height: 6px; background: #334155; border-radius: 3px; overflow: hidden; }
-  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGSN CMC | Espace Étudiant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #0f172a; color: white; min-height: 100vh; }
+        .glass { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; }
+        .gradient-card { background: linear-gradient(135deg, #3b82f6, #8b5cf6); }
+    </style>
 </head>
-<body style="background:#0f172a; color:white; display:flex; height:100vh; overflow:hidden;">
-<aside style="width:240px; background:#1e293b; border-right:1px solid #334155; padding:24px 16px; display:flex; flex-direction:column; flex-shrink:0;">
-  <div style="margin-bottom:32px; padding:0 8px;">
-    <div style="font-size:20px; font-weight:900; color:#7c3aed; font-style:italic;">SGSN CMC</div>
-    <div style="font-size:11px; color:#64748b;">Système de Gestion</div>
-  </div>
-  <div style="background:#0f172a; border-radius:12px; padding:14px; margin-bottom:20px; border:1px solid #334155;">
-    <div style="font-size:12px; color:#64748b; margin-bottom:4px;">Connecté en tant que</div>
-    <div id="sidebar-name" style="font-weight:700; font-size:14px; color:#c084fc;"></div>
-    <div style="font-size:11px; color:#475569; margin-top:2px;">Infrastructure Digitale</div>
-  </div>
-  <nav style="flex:1; display:flex; flex-direction:column; gap:4px;">
-    <div class="nav-btn active" onclick="showSection('notes',this)" style="padding:10px 12px; border-radius:10px; font-size:14px; font-weight:500; display:flex; align-items:center; gap:10px;">📊 Mes Notes</div>
-    <div class="nav-btn" onclick="showSection('absences',this)" style="padding:10px 12px; border-radius:10px; font-size:14px; font-weight:500; color:#94a3b8; display:flex; align-items:center; gap:10px;">🚫 Mes Absences</div>
-    <div class="nav-btn" onclick="showSection('emploi',this)" style="padding:10px 12px; border-radius:10px; font-size:14px; font-weight:500; color:#94a3b8; display:flex; align-items:center; gap:10px;">📅 Emploi du Temps</div>
-    <div class="nav-btn" onclick="showSection('profil',this)" style="padding:10px 12px; border-radius:10px; font-size:14px; font-weight:500; color:#94a3b8; display:flex; align-items:center; gap:10px;">👤 Mon Profil</div>
-  </nav>
-  <div style="border-top:1px solid #334155; padding-top:16px;">
-    <div class="nav-btn" onclick="logout()" style="padding:10px 12px; border-radius:10px; font-size:14px; color:#ef4444; display:flex; align-items:center; gap:10px;">🚪 Déconnexion</div>
-  </div>
-</aside>
-<main style="flex:1; overflow-y:auto; padding:32px 40px;">
-  <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:32px;">
-    <div>
-      <h2 style="font-size:28px; font-weight:800; margin:0;">Bonjour, <span id="stdName" style="color:#c084fc;"></span> 👋</h2>
-      <p style="color:#64748b; font-size:14px; margin-top:4px;">Infrastructure Digitale — Cloud Computing</p>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="gradient-card rounded-3xl p-8 mb-8 text-white shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="flex items-center gap-4">
+                    <img src="https://cmc.ac.ma/sites/default/files/2023-01/logo-cmc.png" class="h-16 bg-white/20 rounded-xl p-2" onerror="this.style.display='none'">
+                    <div>
+                        <h1 class="text-3xl font-bold">Bonjour, <span id="studentName"></span> 👋</h1>
+                        <p class="text-blue-100 mt-1">Infrastructure Digitale — Cloud Computing</p>
+                    </div>
+                </div>
+                <a href="/" onclick="localStorage.clear()" class="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-medium transition backdrop-blur-sm border border-white/20 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    Déconnexion
+                </a>
+            </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Notes -->
+            <div class="glass p-6 border-t-4 border-blue-500">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold flex items-center gap-2">
+                        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        Mes Notes
+                    </h2>
+                    <span id="moyenne" class="text-2xl font-bold text-green-400">--</span>
+                </div>
+                <div id="notesList" class="space-y-3 max-h-80 overflow-y-auto"></div>
+                <div class="mt-4 pt-4 border-t border-white/10 flex justify-between">
+                    <span class="text-slate-400 text-sm">Moyenne</span>
+                    <span id="moyenneFooter" class="font-bold text-white">--/20</span>
+                </div>
+            </div>
+
+            <!-- Absences -->
+            <div class="glass p-6 border-t-4 border-red-500">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold flex items-center gap-2">
+                        <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Absences
+                    </h2>
+                    <span id="totalAbs" class="bg-red-500/20 text-red-400 px-3 py-1 rounded-full text-sm font-bold">0</span>
+                </div>
+                <div id="absencesList" class="space-y-3 max-h-80 overflow-y-auto">
+                    <div class="text-center text-slate-500 py-8">
+                        <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <p>Aucune absence</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emploi -->
+            <div class="glass p-6 border-t-4 border-purple-500">
+                <h2 class="text-xl font-bold mb-6 flex items-center gap-2 text-purple-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    Emploi du Temps
+                </h2>
+                <div id="emploiList" class="space-y-3 max-h-80 overflow-y-auto"></div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="glass p-4 text-center border-t-2 border-blue-500">
+                <p class="text-slate-400 text-xs uppercase">Classement</p>
+                <p class="text-2xl font-bold text-white">2<sup>ème</sup></p>
+            </div>
+            <div class="glass p-4 text-center border-t-2 border-green-500">
+                <p class="text-slate-400 text-xs uppercase">Assiduité</p>
+                <p class="text-2xl font-bold text-green-400">95%</p>
+            </div>
+            <div class="glass p-4 text-center border-t-2 border-amber-500">
+                <p class="text-slate-400 text-xs uppercase">Modules</p>
+                <p class="text-2xl font-bold text-amber-400">4/4</p>
+            </div>
+            <div class="glass p-4 text-center border-t-2 border-purple-500">
+                <p class="text-slate-400 text-xs uppercase">Semestre</p>
+                <p class="text-2xl font-bold text-purple-400">S2</p>
+            </div>
+        </div>
     </div>
-    <div class="card" style="padding:12px 20px; display:flex; gap:24px;">
-      <div style="text-align:center;"><div id="kpi-moy" style="font-size:22px; font-weight:900; color:#4ade80;">—</div><div style="font-size:11px; color:#64748b;">Moyenne</div></div>
-      <div style="width:1px; background:#334155;"></div>
-      <div style="text-align:center;"><div id="kpi-abs" style="font-size:22px; font-weight:900; color:#fb923c;">—</div><div style="font-size:11px; color:#64748b;">Absences</div></div>
-    </div>
-  </header>
-  <div id="sec-notes" class="section active">
-    <h3 style="font-size:18px; font-weight:700; margin-bottom:20px;">📊 Mes Notes</h3>
-    <div id="notes-grid" style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px;"></div>
-    <div class="card" id="moy-box" style="padding:24px; margin-top:20px; display:none;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-        <span style="font-weight:700;">Moyenne générale</span>
-        <span id="moy-val" style="font-size:28px; font-weight:900;"></span>
-      </div>
-      <div class="progress-bar"><div id="moy-bar" class="progress-fill" style="width:0%;"></div></div>
-      <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:11px; color:#64748b;"><span>0</span><span>10</span><span>20</span></div>
-    </div>
-  </div>
-  <div id="sec-absences" class="section">
-    <h3 style="font-size:18px; font-weight:700; margin-bottom:20px;">🚫 Mes Absences</h3>
-    <div id="abs-content"></div>
-  </div>
-  <div id="sec-emploi" class="section">
-    <h3 style="font-size:18px; font-weight:700; margin-bottom:20px;">📅 Mon Emploi du Temps</h3>
-    <div id="emploi-content" style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px;"></div>
-  </div>
-  <div id="sec-profil" class="section">
-    <h3 style="font-size:18px; font-weight:700; margin-bottom:20px;">👤 Mon Profil</h3>
-    <div class="card" style="padding:32px; max-width:480px;">
-      <div style="display:flex; align-items:center; gap:20px; margin-bottom:28px; padding-bottom:24px; border-bottom:1px solid #334155;">
-        <div id="avatar" style="width:60px; height:60px; background:#7c3aed; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:900;"></div>
-        <div><div id="p-nom" style="font-weight:700; font-size:18px;"></div><div style="color:#64748b; font-size:14px; margin-top:2px;">Stagiaire</div></div>
-      </div>
-      <div style="display:flex; flex-direction:column; gap:16px;">
-        <div><div style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase; margin-bottom:6px;">Email</div><div id="p-email" style="background:#0f172a; padding:12px 16px; border-radius:10px; font-size:14px; border:1px solid #334155;"></div></div>
-        <div><div style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase; margin-bottom:6px;">Filière</div><div style="background:#0f172a; padding:12px 16px; border-radius:10px; font-size:14px; border:1px solid #334155;">Infrastructure Digitale — Cloud Computing</div></div>
-        <div><div style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase; margin-bottom:6px;">Centre</div><div style="background:#0f172a; padding:12px 16px; border-radius:10px; font-size:14px; border:1px solid #334155;">CMC Nouaceur</div></div>
-        <div><div style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase; margin-bottom:6px;">Année</div><div style="background:#0f172a; padding:12px 16px; border-radius:10px; font-size:14px; border:1px solid #334155;">2025 — 2026</div></div>
-      </div>
-    </div>
-  </div>
-</main>
-<script>
-const user = JSON.parse(localStorage.getItem('user'));
-if (!user || user.role !== 'Etudiant') location.href = '/';
-document.getElementById('stdName').innerText = user.nom;
-document.getElementById('sidebar-name').innerText = user.nom;
-document.getElementById('p-nom').innerText = user.nom;
-document.getElementById('p-email').innerText = user.email;
-document.getElementById('avatar').innerText = user.nom.charAt(0).toUpperCase();
-function logout() { localStorage.clear(); location.href='/'; }
-function showSection(id,el) {
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>{b.classList.remove('active');b.style.color='#94a3b8';});
-  document.getElementById('sec-'+id).classList.add('active');
-  el.classList.add('active'); el.style.color='white';
-}
-fetch('/api/stagiaires').then(r=>r.json()).then(stags=>{
-  const me=stags.find(s=>s.email===user.email||s.nom===user.nom);
-  if(!me){ document.getElementById('notes-grid').innerHTML='<div style="color:#64748b; grid-column:span 2; text-align:center; padding:40px;">Aucune donnée.</div>'; return; }
-  fetch('/api/notes/'+me.stagiaire_id).then(r=>r.json()).then(notes=>{
-    if(!notes.length){ document.getElementById('notes-grid').innerHTML='<div style="color:#64748b; grid-column:span 2; text-align:center; padding:40px; background:#1e293b; border-radius:16px; border:1px solid #334155;">Aucune note disponible.</div>'; return; }
-    const moy=(notes.reduce((s,n)=>s+parseFloat(n.note),0)/notes.length).toFixed(2);
-    document.getElementById('kpi-moy').innerText=moy+'/20';
-    document.getElementById('kpi-moy').style.color=parseFloat(moy)>=10?'#4ade80':'#ef4444';
-    document.getElementById('notes-grid').innerHTML=notes.map(n=>{
-      const pct=(parseFloat(n.note)/20*100).toFixed(0);
-      const c=parseFloat(n.note)>=16?'#4ade80':parseFloat(n.note)>=10?'#60a5fa':parseFloat(n.note)>=8?'#eab308':'#ef4444';
-      const lbl=parseFloat(n.note)>=16?'Excellent':parseFloat(n.note)>=10?'Bien':parseFloat(n.note)>=8?'Passable':'Insuffisant';
-      return `<div class="card" style="padding:20px;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;"><div><div style="font-weight:600; font-size:14px;">${n.nom_module}</div><div style="font-size:11px; color:#64748b; margin-top:2px;">${new Date(n.date_note).toLocaleDateString('fr-FR')}</div></div><div style="font-size:28px; font-weight:900; color:${c};">${n.note}</div></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%; background:${c};"></div></div><div style="display:flex; justify-content:space-between; margin-top:8px;"><span style="font-size:11px; color:#64748b;">/20</span><span style="font-size:11px; background:${c}22; color:${c}; padding:2px 8px; border-radius:20px; border:1px solid ${c}44;">${lbl}</span></div></div>`;
-    }).join('');
-    const moyBox=document.getElementById('moy-box'); moyBox.style.display='block';
-    const mc=parseFloat(moy)>=10?'#4ade80':'#ef4444';
-    document.getElementById('moy-val').innerText=moy+'/20'; document.getElementById('moy-val').style.color=mc;
-    setTimeout(()=>{ document.getElementById('moy-bar').style.width=(parseFloat(moy)/20*100)+'%'; document.getElementById('moy-bar').style.background=mc; },100);
-  });
-  fetch('/api/absences/'+me.stagiaire_id).then(r=>r.json()).then(abs=>{
-    document.getElementById('kpi-abs').innerText=abs.length;
-    if(!abs.length){ document.getElementById('abs-content').innerHTML='<div class="card" style="padding:40px; text-align:center;"><div style="font-size:48px; margin-bottom:12px;">🎉</div><div style="font-weight:700; color:#4ade80; margin-bottom:8px;">Aucune absence!</div><div style="color:#64748b; font-size:14px;">Excellent — continuez!</div></div>'; return; }
-    const nj=abs.filter(a=>!a.justifiee).length;
-    document.getElementById('abs-content').innerHTML=`<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:20px;"><div class="card" style="padding:20px; text-align:center;"><div style="font-size:32px; font-weight:900; color:#fb923c;">${abs.length}</div><div style="font-size:12px; color:#64748b; margin-top:4px;">Total</div></div><div class="card" style="padding:20px; text-align:center;"><div style="font-size:32px; font-weight:900; color:#ef4444;">${nj}</div><div style="font-size:12px; color:#64748b; margin-top:4px;">Non justifiées</div></div></div><div class="card" style="overflow:hidden;"><div style="padding:16px 20px; border-bottom:1px solid #334155; font-weight:600; font-size:14px;">Détail</div>${abs.map(a=>`<div style="padding:14px 20px; border-bottom:1px solid #334155; display:flex; justify-content:space-between; align-items:center;"><div><div style="font-weight:500; font-size:14px;">${a.nom_module}</div><div style="font-size:12px; color:#64748b;">${new Date(a.date_absence).toLocaleDateString('fr-FR')}</div></div><span style="padding:4px 12px; border-radius:20px; font-size:12px; background:${a.justifiee?'rgba(234,179,8,0.1)':'rgba(239,68,68,0.1)'}; color:${a.justifiee?'#eab308':'#ef4444'}; border:1px solid ${a.justifiee?'rgba(234,179,8,0.2)':'rgba(239,68,68,0.2)'};">${a.justifiee?'Justifiée':'Non justifiée'}</span></div>`).join('')}</div>`;
-  });
-  fetch('/api/emploi/1').then(r=>r.json()).then(data=>{
-    const jours=[...new Set(data.map(e=>e.jour))];
-    const colors={Lundi:'#60a5fa',Mardi:'#4ade80',Mercredi:'#c084fc',Jeudi:'#fb923c'};
-    document.getElementById('emploi-content').innerHTML=jours.map(jour=>{
-      const s=data.filter(e=>e.jour===jour);
-      return `<div class="card" style="padding:24px;"><h4 style="font-weight:700; color:${colors[jour]||'#c084fc'}; margin-bottom:16px;">${jour}</h4>${s.map(x=>`<div style="background:#0f172a; padding:14px 16px; border-radius:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border-left:3px solid ${colors[jour]||'#c084fc'};"><div><div style="font-weight:600; font-size:14px;">${x.nom_module}</div><div style="color:#64748b; font-size:12px;">${x.salle}</div></div><div style="text-align:right;"><div style="color:${colors[jour]||'#c084fc'}; font-weight:700; font-size:13px;">${x.heure_debut.slice(0,5)}</div><div style="color:#64748b; font-size:12px;">— ${x.heure_fin.slice(0,5)}</div></div></div>`).join('')}</div>`;
-    }).join('');
-  });
-});
-</script>
-</body></html>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || user.role !== 'Etudiant') location.href = '/';
+        document.getElementById('studentName').innerText = user.nom.split(' ')[0];
+
+        async function loadData() {
+            const stagiaires = await fetch('/api/stagiaires').then(r=>r.json());
+            const me = stagiaires.find(s => s.email === user.email);
+            if (!me) return;
+
+            // Notes
+            const notes = await fetch(`/api/notes/${me.stagiaire_id}`).then(r=>r.json());
+            const notesDiv = document.getElementById('notesList');
+            if (notes.length > 0) {
+                notesDiv.innerHTML = notes.map(n=>`
+                    <div class="flex justify-between items-center bg-slate-800/50 p-3 rounded-xl border-l-4 ${n.note>=10?'border-green-500':'border-red-500'}">
+                        <div>
+                            <span class="font-medium text-white text-sm">${n.nom_module}</span>
+                        </div>
+                        <span class="font-bold ${n.note>=10?'text-green-400':'text-red-400'}">${n.note}/20</span>
+                    </div>
+                `).join('');
+                const moy = (notes.reduce((s,n)=>s+parseFloat(n.note),0)/notes.length).toFixed(2);
+                document.getElementById('moyenne').innerText = moy;
+                document.getElementById('moyenneFooter').innerText = moy + '/20';
+            }
+
+            // Absences
+            const absences = await fetch(`/api/absences/${me.stagiaire_id}`).then(r=>r.json());
+            if (absences.length > 0) {
+                document.getElementById('totalAbs').innerText = absences.length;
+                document.getElementById('absencesList').innerHTML = absences.map(a=>`
+                    <div class="flex justify-between items-center bg-slate-800/50 p-3 rounded-xl border-l-4 ${a.justifiee?'border-amber-500':'border-red-500'}">
+                        <span class="text-white text-sm">${a.nom_module}</span>
+                        <span class="text-xs ${a.justifiee?'text-amber-400':'text-red-400'}">${a.justifiee?'Justifiée':'Non justifiée'}</span>
+                    </div>
+                `).join('');
+            }
+
+            // Emploi
+            const emploi = await fetch('/api/emploi/1').then(r=>r.json());
+            document.getElementById('emploiList').innerHTML = emploi.map(e=>`
+                <div class="flex justify-between items-center bg-slate-800/50 p-3 rounded-xl">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-xs">
+                            ${e.jour.substring(0,3)}
+                        </div>
+                        <div>
+                            <span class="font-medium text-white text-sm block">${e.nom_module}</span>
+                            <span class="text-xs text-slate-400">${e.heure_debut.slice(0,5)} - ${e.heure_fin.slice(0,5)}</span>
+                        </div>
+                    </div>
+                    <span class="text-xs text-slate-500">${e.salle}</span>
+                </div>
+            `).join('');
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
+
