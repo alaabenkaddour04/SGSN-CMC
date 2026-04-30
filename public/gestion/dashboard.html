@@ -4,261 +4,365 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SGSN CMC | Gestionnaire</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #0f172a; color: white; }
-        .glass { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; }
-        .sidebar { width: 260px; background: rgba(15, 23, 42, 0.95); border-right: 1px solid rgba(255,255,255,0.1); height: 100vh; position: fixed; left: 0; top: 0; }
-        .main { margin-left: 260px; padding: 2rem; }
-        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1.25rem; margin: 0.25rem 0.75rem; border-radius: 0.75rem; color: #94a3b8; cursor: pointer; transition: all 0.3s; }
-        .nav-item:hover, .nav-item.active { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 2rem; width: 90%; max-width: 500px; }
-        .btn { padding: 0.625rem 1.25rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
-        .btn-amber { background: #f59e0b; color: white; }
-        .btn-danger { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .input { width: 100%; padding: 0.75rem; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: white; margin-top: 0.25rem; }
-        .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: 0.75rem; color: white; font-weight: 500; transform: translateX(400px); transition: transform 0.3s; z-index: 2000; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { min-height: 100vh; background: #f5f5f5; display: flex; flex-direction: column; }
+        .header { background: #f5a623; box-shadow: 0 2px 10px rgba(0,0,0,0.15); }
+        .header-top { background: #d4820f; padding: 5px 40px; display: flex; justify-content: flex-end; gap: 20px; }
+        .header-top span { color: white; font-size: 12px; }
+        .header-main { padding: 12px 40px; display: flex; align-items: center; justify-content: space-between; }
+        .header-logo { display: flex; align-items: center; gap: 15px; }
+        .header-logo img { height: 55px; object-fit: contain; }
+        .header-logo-text h1 { color: white; font-size: 20px; font-weight: 800; }
+        .header-logo-text p { color: rgba(255,255,255,0.85); font-size: 12px; margin-top: 2px; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .user-badge { background: rgba(255,255,255,0.2); color: white; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+        .btn-logout { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 7px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+        .btn-logout:hover { background: rgba(255,255,255,0.25); }
+        .layout { display: flex; flex: 1; }
+        .sidebar { width: 240px; background: white; border-right: 1px solid #eee; padding: 24px 0; min-height: calc(100vh - 120px); box-shadow: 2px 0 8px rgba(0,0,0,0.05); }
+        .sidebar-title { font-size: 11px; font-weight: 700; color: #bbb; text-transform: uppercase; letter-spacing: 1px; padding: 0 20px; margin-bottom: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 10px; padding: 11px 20px; color: #555; font-size: 14px; cursor: pointer; transition: all 0.2s; border-left: 3px solid transparent; }
+        .nav-item:hover { background: #fff8e8; color: #f5a623; border-left-color: #f5a623; }
+        .nav-item.active { background: #fff8e8; color: #f5a623; border-left-color: #f5a623; font-weight: 600; }
+        .main { flex: 1; padding: 30px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border-top: 3px solid #f5a623; }
+        .stat-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .stat-value { font-size: 32px; font-weight: 800; color: #1a1a1a; }
+        .stat-sub { font-size: 12px; color: #bbb; margin-top: 4px; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 24px; }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+        .btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: #f5a623; color: white; }
+        .btn-primary:hover { background: #e8951a; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; }
+        .btn-danger:hover { background: #fee2e2; }
+        .btn-edit { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f9f9f9; padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #eee; }
+        td { padding: 14px 16px; border-bottom: 1px solid #f5f5f5; font-size: 14px; color: #333; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafafa; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge-green { background: #dcfce7; color: #16a34a; }
+        .badge-red { background: #fef2f2; color: #dc2626; }
+        .badge-blue { background: #dbeafe; color: #2563eb; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 460px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-title { font-size: 18px; font-weight: 700; color: #1a1a1a; }
+        .modal-close { background: none; border: none; cursor: pointer; color: #888; font-size: 22px; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+        .form-input { width: 100%; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .form-input:focus { border-color: #f5a623; box-shadow: 0 0 0 3px rgba(245,166,35,0.1); }
+        .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+        .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 20px; border-radius: 10px; color: white; font-size: 14px; font-weight: 500; transform: translateX(300px); transition: transform 0.3s; z-index: 2000; }
         .toast.show { transform: translateX(0); }
-        .toast.success { background: #10b981; }
+        .toast-success { background: #059669; }
+        .toast-error { background: #dc2626; }
+        .footer { background: #1a1a1a; color: #666; text-align: center; padding: 16px; font-size: 12px; }
+        .footer span { color: #f5a623; }
     </style>
 </head>
 <body>
     <div id="toast" class="toast"></div>
-    
-    <aside class="sidebar">
-        <div class="p-6 border-b border-white/10">
-            <div class="flex items-center gap-3">
-                <img src="https://cmc.ac.ma/sites/default/files/2023-01/logo-cmc.png" class="h-10 bg-white/10 rounded-lg p-1" onerror="this.style.display='none'">
-                <div>
-                    <h1 class="font-bold text-lg text-white">SGSN CMC</h1>
-                    <p class="text-xs text-amber-400">Gestionnaire</p>
+    <header class="header">
+        <div class="header-top">
+            <span>+212 5XX-XXXXXX</span>
+            <span>contact@cmc.ac.ma</span>
+            <span>cmc.ac.ma</span>
+        </div>
+        <div class="header-main">
+            <div class="header-logo">
+                <img src="data:image/png;base64,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" alt="CMC">
+                <div class="header-logo-text">
+                    <h1>SGSN — CMC Nouaceur</h1>
+                    <p>Espace Gestionnaire</p>
                 </div>
             </div>
-        </div>
-        <nav class="py-4">
-            <div class="nav-item active" onclick="showSection('absences')">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Absences
+            <div class="header-right">
+                <span class="user-badge" id="userName"></span>
+                <button class="btn-logout" onclick="logout()">Deconnexion</button>
             </div>
-            <div class="nav-item" onclick="showSection('emploi')">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+    </header>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div style="padding: 0 20px 16px; margin-bottom: 8px; border-bottom: 1px solid #f0f0f0;">
+                <div style="font-size: 12px; color: #888;">Connecte en tant que</div>
+                <div style="font-size: 14px; font-weight: 700; color: #1a1a1a;" id="sidebarName"></div>
+                <div style="font-size: 12px; color: #f5a623;">Gestionnaire</div>
+            </div>
+            <div class="sidebar-title" style="margin-top: 16px;">Navigation</div>
+            <div class="nav-item active" onclick="showSection('absences', this)">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Gestion Absences
+            </div>
+            <div class="nav-item" onclick="showSection('emploi', this)">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 Emploi du Temps
             </div>
-            <div class="nav-item" onclick="logout()">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                Déconnexion
-            </div>
-        </nav>
-    </aside>
+        </aside>
 
-    <main class="main">
-        <div class="flex justify-between items-center mb-8">
-            <div>
-                <h2 class="text-2xl font-bold">Bonjour, <span id="userName" class="text-amber-400"></span></h2>
-                <p class="text-slate-400 text-sm mt-1">Gestion des absences et emplois du temps</p>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="openModal('addAbsenceModal')" class="btn btn-amber">+ Absence</button>
-                <button onclick="openModal('addEmploiModal')" class="btn btn-amber">+ Emploi</button>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="glass p-6">
-                <h3 class="text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Absences Récentes
-                </h3>
-                <div id="absencesList" class="space-y-3"></div>
-            </div>
-            <div class="glass p-6">
-                <h3 class="text-lg font-bold text-blue-400 mb-4 flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    Emploi du Temps
-                </h3>
-                <div id="emploiList" class="space-y-3"></div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Add Absence Modal -->
-    <div id="addAbsenceModal" class="modal">
-        <div class="modal-content">
-            <h3 class="text-xl font-bold mb-6 text-amber-400">Ajouter Absence</h3>
-            <form onsubmit="saveAbsence(event)">
-                <div class="mb-4">
-                    <label class="block text-sm text-slate-400 mb-1">Stagiaire</label>
-                    <select name="stagiaire_id" id="absStagiaire" class="input" required></select>
+        <main class="main">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Absences</div>
+                    <div class="stat-value" id="totalAbs" style="color:#dc2626">0</div>
+                    <div class="stat-sub">Ce semestre</div>
                 </div>
-                <div class="mb-6">
-                    <label class="block text-sm text-slate-400 mb-1">Module</label>
-                    <select name="module_id" id="absModule" class="input" required></select>
+                <div class="stat-card">
+                    <div class="stat-label">Non Justifiees</div>
+                    <div class="stat-value" id="nonJust" style="color:#f5a623">0</div>
+                    <div class="stat-sub">A traiter</div>
                 </div>
-                <div class="flex gap-3 justify-end">
-                    <button type="button" onclick="closeModal('addAbsenceModal')" class="btn text-slate-300">Annuler</button>
-                    <button type="submit" class="btn btn-amber">Enregistrer</button>
+                <div class="stat-card">
+                    <div class="stat-label">Justifiees</div>
+                    <div class="stat-value" id="justified" style="color:#059669">0</div>
+                    <div class="stat-sub">Validees</div>
+                </div>
+            </div>
+
+            <!-- Absences -->
+            <div id="section-absences">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Gestion des Absences</div>
+                        <button class="btn btn-primary" onclick="openModalAbs()">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            Ajouter Absence
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Stagiaire</th>
+                                    <th>Module</th>
+                                    <th>Date</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableAbs"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emploi -->
+            <div id="section-emploi" style="display:none">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Emploi du Temps</div>
+                        <button class="btn btn-primary" onclick="openModalEmploi()">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            Ajouter Seance
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <table>
+                            <thead>
+                                <tr><th>Jour</th><th>Debut</th><th>Fin</th><th>Module</th><th>Salle</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody id="tableEmploi"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Absence -->
+    <div class="modal-overlay" id="modalAbs">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Ajouter Absence</div>
+                <button class="modal-close" onclick="closeModal('modalAbs')">&times;</button>
+            </div>
+            <form onsubmit="submitAbs(event)">
+                <div class="form-group">
+                    <label class="form-label">Stagiaire</label>
+                    <select id="absStd" class="form-input"></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Module</label>
+                    <select id="absMod" class="form-input"></select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" style="background:#f0f0f0;color:#555" onclick="closeModal('modalAbs')">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Add Emploi Modal -->
-    <div id="addEmploiModal" class="modal">
-        <div class="modal-content">
-            <h3 class="text-xl font-bold mb-6 text-blue-400">Ajouter Séance</h3>
-            <form onsubmit="saveEmploi(event)">
-                <div class="mb-4">
-                    <label class="block text-sm text-slate-400 mb-1">Jour</label>
-                    <select name="jour" class="input" required>
-                        <option value="Lundi">Lundi</option>
-                        <option value="Mardi">Mardi</option>
-                        <option value="Mercredi">Mercredi</option>
-                        <option value="Jeudi">Jeudi</option>
-                        <option value="Vendredi">Vendredi</option>
+    <!-- Modal Emploi -->
+    <div class="modal-overlay" id="modalEmploi">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Ajouter Seance</div>
+                <button class="modal-close" onclick="closeModal('modalEmploi')">&times;</button>
+            </div>
+            <form onsubmit="submitEmploi(event)">
+                <div class="form-group">
+                    <label class="form-label">Jour</label>
+                    <select id="empJour" class="form-input">
+                        <option>Lundi</option><option>Mardi</option><option>Mercredi</option><option>Jeudi</option><option>Vendredi</option>
                     </select>
                 </div>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm text-slate-400 mb-1">Début</label>
-                        <input type="time" name="heure_debut" class="input" required value="08:30">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div class="form-group">
+                        <label class="form-label">Debut</label>
+                        <input type="time" id="empDebut" class="form-input" value="08:30">
                     </div>
-                    <div>
-                        <label class="block text-sm text-slate-400 mb-1">Fin</label>
-                        <input type="time" name="heure_fin" class="input" required value="11:00">
+                    <div class="form-group">
+                        <label class="form-label">Fin</label>
+                        <input type="time" id="empFin" class="form-input" value="11:00">
                     </div>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-sm text-slate-400 mb-1">Module</label>
-                    <select name="module_id" id="empModule" class="input" required></select>
+                <div class="form-group">
+                    <label class="form-label">Module</label>
+                    <select id="empModule" class="form-input"></select>
                 </div>
-                <div class="mb-6">
-                    <label class="block text-sm text-slate-400 mb-1">Salle</label>
-                    <input type="text" name="salle" class="input" required placeholder="Salle 102">
+                <div class="form-group">
+                    <label class="form-label">Salle</label>
+                    <input type="text" id="empSalle" class="form-input" placeholder="Salle 102">
                 </div>
-                <div class="flex gap-3 justify-end">
-                    <button type="button" onclick="closeModal('addEmploiModal')" class="btn text-slate-300">Annuler</button>
-                    <button type="submit" class="btn btn-amber">Enregistrer</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn" style="background:#f0f0f0;color:#555" onclick="closeModal('modalEmploi')">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
                 </div>
             </form>
         </div>
     </div>
+
+    <footer class="footer">
+        &copy; 2026 <span>CMC Nouaceur</span> — Filiere Infrastructure Digitale, Option Cloud Computing — Realise par Alaa Benkaddour
+    </footer>
 
     <script>
         const user = JSON.parse(localStorage.getItem('user'));
         if (!user || user.role !== 'Gestionnaire') location.href = '/';
-        document.getElementById('userName').innerText = user.nom.split(' ')[0];
+        document.getElementById('userName').textContent = user.nom;
+        document.getElementById('sidebarName').textContent = user.nom;
 
         function logout() { localStorage.clear(); location.href = '/'; }
+
         function showToast(msg, type='success') {
             const t = document.getElementById('toast');
-            t.textContent = msg; t.className = 'toast ' + type; t.classList.add('show');
+            t.textContent = msg;
+            t.className = 'toast toast-' + type + ' show';
             setTimeout(() => t.classList.remove('show'), 3000);
         }
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
-        async function loadSelects() {
-            const [stagiaires, modules] = await Promise.all([
-                fetch('/api/stagiaires').then(r=>r.json()),
-                fetch('/api/modules').then(r=>r.json())
-            ]);
-            
-            document.getElementById('absStagiaire').innerHTML = stagiaires.map(s=>`<option value="${s.stagiaire_id}">${s.nom}</option>`).join('');
-            document.getElementById('absModule').innerHTML = modules.map(m=>`<option value="${m.id}">${m.nom_module}</option>`).join('');
-            document.getElementById('empModule').innerHTML = modules.map(m=>`<option value="${m.id}">${m.nom_module}</option>`).join('');
+        function showSection(name, el) {
+            document.getElementById('section-absences').style.display = name === 'absences' ? 'block' : 'none';
+            document.getElementById('section-emploi').style.display = name === 'emploi' ? 'block' : 'none';
+            document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+            if (name === 'absences') loadAbs();
+            if (name === 'emploi') loadEmploi();
         }
 
-        async function loadAbsences() {
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        async function loadAbs() {
             const res = await fetch('/api/absences');
             const data = await res.json();
-            document.getElementById('absencesList').innerHTML = data.slice(0,5).map(a=>`
-                <div class="flex justify-between items-center bg-slate-800/50 p-4 rounded-xl border-l-4 ${a.justifiee ? 'border-green-500' : 'border-red-500'}">
-                    <div>
-                        <span class="font-bold text-white block">${a.stagiaire}</span>
-                        <span class="text-xs text-slate-400">${a.nom_module} • ${a.date_absence.split('T')[0]}</span>
-                    </div>
-                    <div class="flex gap-2">
-                        ${!a.justifiee ? `<button onclick="justifier(${a.id})" class="text-amber-400 hover:text-amber-300 text-sm">Justifier</button>` : '<span class="text-green-400 text-sm">✓</span>'}
-                        <button onclick="deleteAbsence(${a.id})" class="text-red-400 hover:text-red-300 text-sm">×</button>
-                    </div>
-                </div>
-            `).join('');
+            document.getElementById('totalAbs').textContent = data.length;
+            document.getElementById('nonJust').textContent = data.filter(a => !a.justifiee).length;
+            document.getElementById('justified').textContent = data.filter(a => a.justifiee).length;
+            document.getElementById('tableAbs').innerHTML = data.map(a => `
+                <tr>
+                    <td style="font-weight:600">${a.stagiaire}</td>
+                    <td>${a.nom_module}</td>
+                    <td style="color:#888">${a.date_absence ? a.date_absence.split('T')[0] : '-'}</td>
+                    <td><span class="badge ${a.justifiee ? 'badge-green' : 'badge-red'}">${a.justifiee ? 'Justifiee' : 'Non justifiee'}</span></td>
+                    <td>
+                        <div style="display:flex;gap:6px">
+                            ${!a.justifiee ? `<button class="btn btn-edit" onclick="justifier(${a.id})">Justifier</button>` : ''}
+                            <button class="btn btn-danger" onclick="deleteAbs(${a.id})">Supprimer</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="5" style="text-align:center;color:#888;padding:30px">Aucune absence</td></tr>';
         }
 
         async function loadEmploi() {
             const res = await fetch('/api/emploi/1');
             const data = await res.json();
-            document.getElementById('emploiList').innerHTML = data.map(e=>`
-                <div class="flex justify-between items-center bg-slate-800/50 p-4 rounded-xl hover:bg-slate-800 transition">
-                    <div>
-                        <span class="font-bold text-blue-400">${e.jour}</span>
-                        <span class="text-slate-400 text-sm ml-2">${e.heure_debut.slice(0,5)} - ${e.heure_fin.slice(0,5)}</span>
-                        <p class="text-white mt-1">${e.nom_module}</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <span class="text-xs bg-slate-700 px-3 py-1 rounded-lg text-slate-300">${e.salle}</span>
-                        <button onclick="deleteEmploi(${e.id})" class="text-red-400 hover:text-red-300">×</button>
-                    </div>
-                </div>
-            `).join('');
+            document.getElementById('tableEmploi').innerHTML = data.map(e => `
+                <tr>
+                    <td style="font-weight:600;color:#f5a623">${e.jour}</td>
+                    <td>${e.heure_debut.slice(0,5)}</td>
+                    <td>${e.heure_fin.slice(0,5)}</td>
+                    <td>${e.nom_module}</td>
+                    <td><span class="badge badge-blue">${e.salle}</span></td>
+                    <td><button class="btn btn-danger" onclick="deleteEmploi(${e.id})">Supprimer</button></td>
+                </tr>
+            `).join('') || '<tr><td colspan="6" style="text-align:center;color:#888;padding:30px">Aucune seance</td></tr>';
         }
 
-        async function saveAbsence(e) {
-            e.preventDefault();
-            const f = e.target;
-            try {
-                await fetch('/api/absences', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ stagiaire_id: f.stagiaire_id.value, module_id: f.module_id.value })
-                });
-                showToast('Absence ajoutée!');
-                closeModal('addAbsenceModal'); loadAbsences();
-            } catch(e) { showToast('Erreur', 'error'); }
+        async function openModalAbs() {
+            const stds = await fetch('/api/stagiaires').then(r=>r.json());
+            const mods = await fetch('/api/modules').then(r=>r.json());
+            document.getElementById('absStd').innerHTML = stds.map(s => `<option value="${s.stagiaire_id}">${s.nom}</option>`).join('');
+            document.getElementById('absMod').innerHTML = mods.map(m => `<option value="${m.id}">${m.nom_module}</option>`).join('');
+            document.getElementById('modalAbs').classList.add('active');
         }
 
-        async function saveEmploi(e) {
+        async function openModalEmploi() {
+            const mods = await fetch('/api/modules').then(r=>r.json());
+            document.getElementById('empModule').innerHTML = mods.map(m => `<option value="${m.id}">${m.nom_module}</option>`).join('');
+            document.getElementById('modalEmploi').classList.add('active');
+        }
+
+        async function submitAbs(e) {
             e.preventDefault();
-            const f = e.target;
-            try {
-                await fetch('/api/emploi', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        classe_id: 1,
-                        jour: f.jour.value,
-                        heure_debut: f.heure_debut.value,
-                        heure_fin: f.heure_fin.value,
-                        module_id: f.module_id.value,
-                        salle: f.salle.value
-                    })
-                });
-                showToast('Séance ajoutée!');
-                closeModal('addEmploiModal'); loadEmploi();
-            } catch(e) { showToast('Erreur', 'error'); }
+            const res = await fetch('/api/absences', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ stagiaire_id: document.getElementById('absStd').value, module_id: document.getElementById('absMod').value })
+            });
+            if (res.ok) { showToast('Absence enregistree!'); closeModal('modalAbs'); loadAbs(); }
+            else showToast('Erreur!', 'error');
+        }
+
+        async function submitEmploi(e) {
+            e.preventDefault();
+            const res = await fetch('/api/emploi', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ classe_id: 1, jour: document.getElementById('empJour').value, heure_debut: document.getElementById('empDebut').value, heure_fin: document.getElementById('empFin').value, module_id: document.getElementById('empModule').value, salle: document.getElementById('empSalle').value })
+            });
+            if (res.ok) { showToast('Seance ajoutee!'); closeModal('modalEmploi'); loadEmploi(); }
+            else showToast('Erreur!', 'error');
         }
 
         async function justifier(id) {
-            await fetch(`/api/absences/${id}/justifier`, {method: 'PUT'});
-            showToast('Justifiée!'); loadAbsences();
+            const res = await fetch('/api/absences/'+id+'/justifier', {method:'PUT'});
+            if (res.ok) { showToast('Absence justifiee!'); loadAbs(); }
         }
 
-        async function deleteAbsence(id) {
-            if (!confirm('Supprimer?')) return;
-            await fetch(`/api/absences/${id}`, {method: 'DELETE'});
-            showToast('Supprimée!'); loadAbsences();
+        async function deleteAbs(id) {
+            if (!confirm('Supprimer cette absence?')) return;
+            const res = await fetch('/api/absences/'+id, {method:'DELETE'});
+            if (res.ok) { showToast('Supprimee!'); loadAbs(); }
         }
 
         async function deleteEmploi(id) {
-            if (!confirm('Supprimer?')) return;
-            await fetch(`/api/emploi/${id}`, {method: 'DELETE'});
-            showToast('Supprimée!'); loadEmploi();
+            if (!confirm('Supprimer cette seance?')) return;
+            const res = await fetch('/api/emploi/'+id, {method:'DELETE'});
+            if (res.ok) { showToast('Supprimee!'); loadEmploi(); }
         }
 
-        loadSelects(); loadAbsences(); loadEmploi();
+        loadAbs();
     </script>
 </body>
 </html>

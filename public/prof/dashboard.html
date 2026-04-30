@@ -4,225 +4,261 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SGSN CMC | Professeur</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #0f172a; color: white; }
-        .glass { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; }
-        .sidebar { width: 260px; background: rgba(15, 23, 42, 0.95); border-right: 1px solid rgba(255,255,255,0.1); height: 100vh; position: fixed; left: 0; top: 0; }
-        .main { margin-left: 260px; padding: 2rem; }
-        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1.25rem; margin: 0.25rem 0.75rem; border-radius: 0.75rem; color: #94a3b8; cursor: pointer; transition: all 0.3s; }
-        .nav-item:hover, .nav-item.active { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-        .btn { padding: 0.625rem 1.25rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
-        .btn-emerald { background: #10b981; color: white; }
-        .input { width: 100%; padding: 0.75rem; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: white; }
-        .input:focus { outline: none; border-color: #10b981; }
-        .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: 0.75rem; color: white; font-weight: 500; transform: translateX(400px); transition: transform 0.3s; z-index: 2000; }
-        .toast.show { transform: translateX(0); }
-        .toast.success { background: #10b981; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { min-height: 100vh; background: #f5f5f5; display: flex; flex-direction: column; }
+        .header { background: #f5a623; box-shadow: 0 2px 10px rgba(0,0,0,0.15); }
+        .header-top { background: #d4820f; padding: 5px 40px; display: flex; justify-content: flex-end; gap: 20px; }
+        .header-top span { color: white; font-size: 12px; }
+        .header-main { padding: 12px 40px; display: flex; align-items: center; justify-content: space-between; }
+        .header-logo { display: flex; align-items: center; gap: 15px; }
+        .header-logo img { height: 55px; object-fit: contain; }
+        .header-logo-text h1 { color: white; font-size: 20px; font-weight: 800; }
+        .header-logo-text p { color: rgba(255,255,255,0.85); font-size: 12px; margin-top: 2px; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .user-badge { background: rgba(255,255,255,0.2); color: white; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+        .btn-logout { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 7px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+        .btn-logout:hover { background: rgba(255,255,255,0.25); }
+        .layout { display: flex; flex: 1; }
+        .sidebar { width: 240px; background: white; border-right: 1px solid #eee; padding: 24px 0; min-height: calc(100vh - 120px); box-shadow: 2px 0 8px rgba(0,0,0,0.05); }
+        .sidebar-title { font-size: 11px; font-weight: 700; color: #bbb; text-transform: uppercase; letter-spacing: 1px; padding: 0 20px; margin-bottom: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 10px; padding: 11px 20px; color: #555; font-size: 14px; cursor: pointer; transition: all 0.2s; border-left: 3px solid transparent; }
+        .nav-item:hover { background: #fff8e8; color: #f5a623; border-left-color: #f5a623; }
+        .nav-item.active { background: #fff8e8; color: #f5a623; border-left-color: #f5a623; font-weight: 600; }
+        .main { flex: 1; padding: 30px; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 24px; }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .card-title { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+        .btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: #f5a623; color: white; }
+        .btn-primary:hover { background: #e8951a; }
+        .btn-success { background: #dcfce7; color: #16a34a; border: 1px solid #86efac; }
+        .btn-success:hover { background: #bbf7d0; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        th { background: rgba(15, 23, 42, 0.5); color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; }
-        .note-input { width: 80px; text-align: center; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: white; padding: 0.5rem; }
-        .absence-check { width: 1.5rem; height: 1.5rem; accent-color: #ef4444; }
+        th { background: #f9f9f9; padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #eee; }
+        td { padding: 12px 16px; border-bottom: 1px solid #f5f5f5; font-size: 14px; color: #333; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafafa; }
+        .form-input { padding: 8px 12px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s; width: 100%; }
+        .form-input:focus { border-color: #f5a623; box-shadow: 0 0 0 3px rgba(245,166,35,0.1); }
+        select.form-input { background: white; }
+        .avatar { width: 34px; height: 34px; background: linear-gradient(135deg, #f5a623, #e8951a); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 12px; }
+        .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 20px; border-radius: 10px; color: white; font-size: 14px; font-weight: 500; transform: translateX(300px); transition: transform 0.3s; z-index: 2000; }
+        .toast.show { transform: translateX(0); }
+        .toast-success { background: #059669; }
+        .toast-error { background: #dc2626; }
+        .filter-bar { display: flex; align-items: center; gap: 12px; }
+        .filter-bar label { font-size: 13px; font-weight: 600; color: #555; white-space: nowrap; }
+        .footer { background: #1a1a1a; color: #666; text-align: center; padding: 16px; font-size: 12px; }
+        .footer span { color: #f5a623; }
     </style>
 </head>
 <body>
     <div id="toast" class="toast"></div>
-    
-    <aside class="sidebar">
-        <div class="p-6 border-b border-white/10">
-            <div class="flex items-center gap-3">
-                <img src="https://cmc.ac.ma/sites/default/files/2023-01/logo-cmc.png" class="h-10 bg-white/10 rounded-lg p-1" onerror="this.style.display='none'">
-                <div>
-                    <h1 class="font-bold text-lg text-white">SGSN CMC</h1>
-                    <p class="text-xs text-emerald-400">Professeur</p>
+    <header class="header">
+        <div class="header-top">
+            <span>+212 5XX-XXXXXX</span>
+            <span>contact@cmc.ac.ma</span>
+            <span>cmc.ac.ma</span>
+        </div>
+        <div class="header-main">
+            <div class="header-logo">
+                <img src="data:image/png;base64,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" alt="CMC">
+                <div class="header-logo-text">
+                    <h1>SGSN — CMC Nouaceur</h1>
+                    <p>Espace Professeur</p>
                 </div>
+            </div>
+            <div class="header-right">
+                <span class="user-badge" id="userName"></span>
+                <button class="btn-logout" onclick="logout()">Deconnexion</button>
             </div>
         </div>
-        <nav class="py-4">
-            <div class="nav-item active">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Saisie Notes
-            </div>
-            <div class="nav-item" onclick="logout()">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                Déconnexion
-            </div>
-        </nav>
-    </aside>
+    </header>
 
-    <main class="main">
-        <div class="mb-8">
-            <h2 class="text-2xl font-bold">Bonjour, <span id="profName" class="text-emerald-400"></span></h2>
-            <p class="text-slate-400 text-sm mt-1">Saisie des notes et absences</p>
-        </div>
+    <div class="layout">
+        <aside class="sidebar">
+            <div style="padding: 0 20px 16px; margin-bottom: 8px; border-bottom: 1px solid #f0f0f0;">
+                <div style="font-size: 12px; color: #888;">Connecte en tant que</div>
+                <div style="font-size: 14px; font-weight: 700; color: #1a1a1a;" id="sidebarName"></div>
+                <div style="font-size: 12px; color: #f5a623;">Professeur</div>
+            </div>
+            <div class="sidebar-title" style="margin-top: 16px;">Navigation</div>
+            <div class="nav-item active" onclick="showSection('notes', this)">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Saisie des Notes
+            </div>
+            <div class="nav-item" onclick="showSection('absences', this)">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Marquer Absences
+            </div>
+        </aside>
 
-        <div class="glass p-6 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div>
-                    <label class="block text-slate-400 text-sm mb-2">Module</label>
-                    <select id="moduleSelect" class="input" onchange="loadStagiaires()">
-                        <option value="">Choisir...</option>
-                        <option value="1">Cloud Computing</option>
-                        <option value="2">Réseaux</option>
-                        <option value="3">Sécurité</option>
-                        <option value="4">Linux Admin</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-slate-400 text-sm mb-2">Date</label>
-                    <input type="date" id="dateSelect" class="input">
-                </div>
-                <div class="flex items-end">
-                    <button onclick="loadStagiaires()" class="btn btn-emerald w-full">Charger Stagiaires</button>
+        <main class="main">
+            <!-- Notes -->
+            <div id="section-notes">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Saisie des Notes</div>
+                        <div class="filter-bar">
+                            <label>Module:</label>
+                            <select id="moduleSelect" class="form-input" style="width:200px" onchange="loadStdForNotes()">
+                                <option value="">Choisir un module...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Stagiaire</th>
+                                    <th>Note /20</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableNotes"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <div id="saisieSection" class="hidden">
-                <div class="overflow-x-auto">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Stagiaire</th>
-                                <th>Note /20</th>
-                                <th>Absent</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="stagiairesTable"></tbody>
-                    </table>
-                </div>
-                <div class="mt-6 flex justify-end">
-                    <button onclick="saveAll()" class="btn btn-emerald text-lg px-8 py-3 shadow-lg shadow-emerald-500/30">
-                        💾 Enregistrer Tout
-                    </button>
+            <!-- Absences -->
+            <div id="section-absences" style="display:none">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Marquer les Absences</div>
+                        <div class="filter-bar">
+                            <label>Module:</label>
+                            <select id="moduleSelectAbs" class="form-input" style="width:200px" onchange="loadStdForAbs()">
+                                <option value="">Choisir un module...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Stagiaire</th>
+                                    <th>Marquer Absent</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableAbs"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-            
-            <div id="emptyState" class="text-center py-12 text-slate-500">
-                <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                <p>Sélectionnez un module pour commencer</p>
-            </div>
-        </div>
+        </main>
+    </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="glass p-6 border-l-4 border-emerald-500">
-                <h3 class="text-lg font-bold text-white mb-2">Moyenne Classe</h3>
-                <p class="text-3xl font-bold text-emerald-400">15.4</p>
-            </div>
-            <div class="glass p-6 border-l-4 border-blue-500">
-                <h3 class="text-lg font-bold text-white mb-2">Présence</h3>
-                <p class="text-3xl font-bold text-blue-400">92%</p>
-            </div>
-            <div class="glass p-6 border-l-4 border-purple-500">
-                <h3 class="text-lg font-bold text-white mb-2">Stagiaires</h3>
-                <p class="text-3xl font-bold text-purple-400">3</p>
-            </div>
-        </div>
-    </main>
+    <footer class="footer">
+        &copy; 2026 <span>CMC Nouaceur</span> — Filiere Infrastructure Digitale, Option Cloud Computing — Realise par Alaa Benkaddour
+    </footer>
 
     <script>
         const user = JSON.parse(localStorage.getItem('user'));
         if (!user || user.role !== 'Professeur') location.href = '/';
-        document.getElementById('profName').innerText = user.nom.split(' ').pop();
-        document.getElementById('dateSelect').valueAsDate = new Date();
+        document.getElementById('userName').textContent = user.nom;
+        document.getElementById('sidebarName').textContent = user.nom;
 
         function logout() { localStorage.clear(); location.href = '/'; }
+
         function showToast(msg, type='success') {
             const t = document.getElementById('toast');
-            t.textContent = msg; t.className = 'toast ' + type; t.classList.add('show');
+            t.textContent = msg;
+            t.className = 'toast toast-' + type + ' show';
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
-        let stagiairesData = [];
+        function showSection(name, el) {
+            document.getElementById('section-notes').style.display = name === 'notes' ? 'block' : 'none';
+            document.getElementById('section-absences').style.display = name === 'absences' ? 'block' : 'none';
+            document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+        }
 
-        async function loadStagiaires() {
-            const module = document.getElementById('moduleSelect').value;
-            if (!module) { alert('Choisir module'); return; }
-            
-            const res = await fetch('/api/stagiaires');
-            stagiairesData = await res.json();
-            
-            document.getElementById('emptyState').classList.add('hidden');
-            document.getElementById('saisieSection').classList.remove('hidden');
-            
-            document.getElementById('stagiairesTable').innerHTML = stagiairesData.map(s=>`
-                <tr data-id="${s.stagiaire_id}">
-                    <td class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400 flex items-center justify-center text-white font-bold text-sm">
-                            ${s.nom.split(' ').map(n=>n[0]).join('').substring(0,2)}
+        let stagiaires = [];
+
+        async function init() {
+            const mods = await fetch('/api/modules').then(r=>r.json());
+            stagiaires = await fetch('/api/stagiaires').then(r=>r.json());
+            const opts = mods.map(m => `<option value="${m.id}">${m.nom_module}</option>`).join('');
+            document.getElementById('moduleSelect').innerHTML = '<option value="">Choisir un module...</option>' + opts;
+            document.getElementById('moduleSelectAbs').innerHTML = '<option value="">Choisir un module...</option>' + opts;
+        }
+
+        function loadStdForNotes() {
+            const modId = document.getElementById('moduleSelect').value;
+            if (!modId) { document.getElementById('tableNotes').innerHTML = '<tr><td colspan="3" style="text-align:center;color:#888;padding:20px">Choisir un module</td></tr>'; return; }
+            document.getElementById('tableNotes').innerHTML = stagiaires.map(s => `
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <div class="avatar">${s.nom.split(' ').map(n=>n[0]).join('').substring(0,2)}</div>
+                            <span style="font-weight:600">${s.nom}</span>
                         </div>
-                        <div>
-                            <span class="font-medium text-white block">${s.nom}</span>
-                            <span class="text-xs text-slate-400">${s.email}</span>
-                        </div>
+                    </td>
+                    <td style="width:150px">
+                        <input type="number" id="note_${s.stagiaire_id}" class="form-input" min="0" max="20" step="0.5" placeholder="0 - 20">
                     </td>
                     <td>
-                        <input type="number" min="0" max="20" step="0.5" class="note-input" id="note_${s.stagiaire_id}" placeholder="--">
-                    </td>
-                    <td>
-                        <label class="flex items-center cursor-pointer">
-                            <input type="checkbox" class="absence-check" id="abs_${s.stagiaire_id}">
-                            <span class="ml-2 text-sm text-slate-400">Absent</span>
-                        </label>
-                    </td>
-                    <td>
-                        <button onclick="saveOne(${s.stagiaire_id})" class="text-emerald-400 hover:text-emerald-300 text-sm font-medium">
-                            Enregistrer
-                        </button>
+                        <button class="btn btn-primary" onclick="saveNote(${s.stagiaire_id})">Enregistrer</button>
                     </td>
                 </tr>
             `).join('');
         }
 
-        async function saveOne(stagId) {
-            const module = document.getElementById('moduleSelect').value;
-            const note = document.getElementById(`note_${stagId}`).value;
-            const absent = document.getElementById(`abs_${stagId}`).checked;
-            
-            if (note) {
-                await fetch('/api/notes', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({stagiaire_id: stagId, module_id: module, note: note})
-                });
-            }
-            
-            if (absent) {
-                await fetch('/api/absences', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({stagiaire_id: stagId, module_id: module})
-                });
-            }
-            
-            showToast('Enregistré!');
+        function loadStdForAbs() {
+            const modId = document.getElementById('moduleSelectAbs').value;
+            if (!modId) { document.getElementById('tableAbs').innerHTML = '<tr><td colspan="3" style="text-align:center;color:#888;padding:20px">Choisir un module</td></tr>'; return; }
+            document.getElementById('tableAbs').innerHTML = stagiaires.map(s => `
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <div class="avatar">${s.nom.split(' ').map(n=>n[0]).join('').substring(0,2)}</div>
+                            <span style="font-weight:600">${s.nom}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                            <input type="checkbox" id="abs_${s.stagiaire_id}" style="width:18px;height:18px;accent-color:#f5a623">
+                            <span style="font-size:13px;color:#666">Absent</span>
+                        </label>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary" onclick="saveAbs(${s.stagiaire_id})">Enregistrer</button>
+                    </td>
+                </tr>
+            `).join('');
         }
 
-        async function saveAll() {
-            const module = document.getElementById('moduleSelect').value;
-            for (let s of stagiairesData) {
-                const note = document.getElementById(`note_${s.stagiaire_id}`).value;
-                const absent = document.getElementById(`abs_${s.stagiaire_id}`).checked;
-                
-                if (note) {
-                    await fetch('/api/notes', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({stagiaire_id: s.stagiaire_id, module_id: module, note: note})
-                    });
-                }
-                if (absent) {
-                    await fetch('/api/absences', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({stagiaire_id: s.stagiaire_id, module_id: module})
-                    });
-                }
-            }
-            showToast('Tout enregistré avec succès!');
+        async function saveNote(stagId) {
+            const modId = document.getElementById('moduleSelect').value;
+            const note = document.getElementById('note_'+stagId).value;
+            if (!note) { showToast('Entrez une note!', 'error'); return; }
+            const res = await fetch('/api/notes', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ stagiaire_id: stagId, module_id: modId, note: parseFloat(note) })
+            });
+            if (res.ok) { showToast('Note enregistree!'); document.getElementById('note_'+stagId).value = ''; }
+            else showToast('Erreur!', 'error');
         }
+
+        async function saveAbs(stagId) {
+            const modId = document.getElementById('moduleSelectAbs').value;
+            const absent = document.getElementById('abs_'+stagId).checked;
+            if (!absent) { showToast('Cochez absent dabord!', 'error'); return; }
+            const res = await fetch('/api/absences', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ stagiaire_id: stagId, module_id: modId })
+            });
+            if (res.ok) { showToast('Absence enregistree!'); document.getElementById('abs_'+stagId).checked = false; }
+            else showToast('Erreur!', 'error');
+        }
+
+        init();
     </script>
 </body>
 </html>

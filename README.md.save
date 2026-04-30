@@ -1,0 +1,43 @@
+# 🎓 SGSN-CMC — Système de Gestion Scolaire Numérique
+
+[![Azure](https://img.shields.io/badge/Azure-VM-blue)](https://azure.microsoft.com)
+[![Docker](https://img.shields.io/badge/Docker-✓-blue)](https://docker.com)
+[![Node.js](https://img.shields.io/badge/Node.js-20-green)](https://nodejs.org)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)](https://postgresql.org)
+
+> Projet de fin d'études — Filière Infrastructure Digitale (Cloud Computing)  
+> Centre de Formation CMC Nouaceur — 2026
+
+## 🌐 Live Demo
+**🔗 http://sgsncmc.duckdns.org**  
+**📚 API Docs: http://sgsncmc.duckdns.org/api-docs**
+
+## ✨ Features
+
+- 🔐 **Authentication multi-rôles** (Admin, Gestionnaire, Professeur, Étudiant)
+- 📊 **CRUD Complet** (Stagiaires, Notes, Absences, Emploi du temps)
+- 🐳 **Docker Containerized** (Full stack with Docker Compose)
+- ☁️ **Cloud Deployed** (Azure VM + Ubuntu 24.04)
+- 📖 **API Documentation** (Swagger/OpenAPI 3.0)
+- 🎨 **Responsive UI** (Tailwind CSS + Glassmorphism design)
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | HTML5, Tailwind CSS, Vanilla JS |
+| **Backend** | Node.js, Express.js |
+| **Database** | PostgreSQL 16 |
+| **DevOps** | Docker, Docker Compose |
+| **Cloud** | Azure Virtual Machine |
+| **Docs** | Swagger UI |
+
+## 🚀 Quick Start (Local)
+
+### Prerequisites
+- Docker & Docker Compose
+- Git
+
+### Installation
+
+```bash

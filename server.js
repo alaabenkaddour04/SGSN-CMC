@@ -2,8 +2,6 @@ const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
 const path = require('path');
-const swaggerUi = require('swagger-ui-express');
-const swaggerJsdoc = require('swagger-jsdoc');
 require('dotenv').config();
 
 const app = express();
@@ -11,69 +9,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// SWAGGER CONFIG
-const swaggerOptions = {
-    definition: {
-        openapi: '3.0.0',
-        info: {
-            title: 'SGSN-CMC API',
-            version: '1.0.0',
-            description: 'Système de Gestion Scolaire Numérique - Cloud Computing ID',
-            contact: { name: 'Alaa Benkaddour' }
-        },
-        servers: [{ url: 'http://51.107.1.157', description: 'Azure VM' }]
-    },
-    apis: ['./server.js']
-};
-
-const swaggerDocs = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-
-/**
- * @swagger
- * /api/auth/login:
- *   post:
- *     summary: Connexion utilisateur
- *     tags: [Authentication]
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email: { type: string, example: "alaa@sgsn.ma" }
- *               password: { type: string, example: "123456" }
- *     responses:
- *       200: { description: "Succès" }
- *       401: { description: "Erreur auth" }
- */
-
-/**
- * @swagger
- * /api/stagiaires:
- *   get:
- *     summary: Liste stagiaires
- *     tags: [Stagiaires]
- *     responses:
- *       200: { description: "Liste obtenue" }
- *   post:
- *     summary: Ajouter stagiaire
- *     tags: [Stagiaires]
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               nom: { type: string }
- *               email: { type: string }
- *               password: { type: string }
- */
-
-// DATABASE
 const pool = new Pool({
     user: process.env.DB_USER || 'postgres',
-    host: process.env.DB_HOST || 'db',
+    host: process.env.DB_HOST || 'sgsn-db',
     database: process.env.DB_NAME || 'sgsn_db',
     password: process.env.DB_PASSWORD || 'sgsn2026',
     port: process.env.DB_PORT || 5432,
@@ -89,10 +27,10 @@ app.post('/api/auth/login', async (req, res) => {
         );
         if (result.rows.length > 0) res.json(result.rows[0]);
         else res.status(401).json({ message: 'Email ou mot de passe incorrect' });
-    } catch (err) { res.status(500).json({ message: 'Erreur serveur' }); }
+    } catch (err) { res.status(500).json({ message: 'Erreur serveur: ' + err.message }); }
 });
 
-// STAGIAIRES CRUD
+// STAGIAIRES
 app.get('/api/stagiaires', async (req, res) => {
     try {
         const result = await pool.query(
@@ -103,37 +41,34 @@ app.get('/api/stagiaires', async (req, res) => {
              WHERE u.role = 'Etudiant' ORDER BY u.nom`
         );
         res.json(result.rows);
-    } catch (err) { res.status(500).json({ message: 'Erreur' }); }
+    } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 app.post('/api/stagiaires', async (req, res) => {
     const { nom, email, password } = req.body;
     try {
         await pool.query('BEGIN');
-        const userResult = await pool.query(
+        const user = await pool.query(
             'INSERT INTO utilisateurs (nom, email, password_text, role) VALUES ($1, $2, $3, $4) RETURNING id',
             [nom, email, password || '123456', 'Etudiant']
         );
-        await pool.query('INSERT INTO stagiaires (user_id, classe_id) VALUES ($1, $2)', [userResult.rows[0].id, 1]);
+        await pool.query('INSERT INTO stagiaires (user_id, classe_id) VALUES ($1, 1)', [user.rows[0].id]);
         await pool.query('COMMIT');
-        res.json({ message: 'Ajouté', id: userResult.rows[0].id });
-    } catch (err) { 
-        await pool.query('ROLLBACK');
-        res.status(500).json({ message: err.message }); 
-    }
+        res.json({ message: 'Stagiaire ajouté', id: user.rows[0].id });
+    } catch (err) { await pool.query('ROLLBACK'); res.status(500).json({ message: err.message }); }
 });
 
 app.put('/api/stagiaires/:id', async (req, res) => {
+    const { nom, email } = req.body;
     try {
-        await pool.query('UPDATE utilisateurs SET nom = $1, email = $2 WHERE id = $3', 
-            [req.body.nom, req.body.email, req.params.id]);
+        await pool.query('UPDATE utilisateurs SET nom=$1, email=$2 WHERE id=$3', [nom, email, req.params.id]);
         res.json({ message: 'Modifié' });
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 app.delete('/api/stagiaires/:id', async (req, res) => {
     try {
-        await pool.query('DELETE FROM utilisateurs WHERE id = $1', [req.params.id]);
+        await pool.query('DELETE FROM utilisateurs WHERE id=$1', [req.params.id]);
         res.json({ message: 'Supprimé' });
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
@@ -144,31 +79,34 @@ app.get('/api/notes/:id', async (req, res) => {
         const result = await pool.query(
             `SELECT n.id, m.nom_module, n.note, n.date_note 
              FROM notes n JOIN modules m ON n.module_id = m.id
-             WHERE n.stagiaire_id = $1 ORDER BY n.date_note DESC`,
+             WHERE n.stagiaire_id = $1 ORDER BY m.nom_module`,
             [req.params.id]
         );
         res.json(result.rows);
-    } catch (err) { res.status(500).json({ message: 'Erreur' }); }
+    } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 app.post('/api/notes', async (req, res) => {
+    const { stagiaire_id, module_id, note } = req.body;
     try {
-        await pool.query('INSERT INTO notes (stagiaire_id, module_id, note) VALUES ($1, $2, $3)', 
-            [req.body.stagiaire_id, req.body.module_id, req.body.note]);
+        await pool.query(
+            'INSERT INTO notes (stagiaire_id, module_id, note) VALUES ($1, $2, $3)',
+            [stagiaire_id, module_id, note]
+        );
         res.json({ message: 'Note ajoutée' });
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 app.put('/api/notes/:id', async (req, res) => {
     try {
-        await pool.query('UPDATE notes SET note = $1 WHERE id = $2', [req.body.note, req.params.id]);
+        await pool.query('UPDATE notes SET note=$1 WHERE id=$2', [req.body.note, req.params.id]);
         res.json({ message: 'Note modifiée' });
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 app.delete('/api/notes/:id', async (req, res) => {
     try {
-        await pool.query('DELETE FROM notes WHERE id = $1', [req.params.id]);
+        await pool.query('DELETE FROM notes WHERE id=$1', [req.params.id]);
         res.json({ message: 'Note supprimée' });
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
@@ -183,7 +121,7 @@ app.get('/api/absences/:id', async (req, res) => {
             [req.params.id]
         );
         res.json(result.rows);
-    } catch (err) { res.status(500).json({ message: 'Erreur' }); }
+    } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 app.get('/api/absences', async (req, res) => {
@@ -197,32 +135,35 @@ app.get('/api/absences', async (req, res) => {
              ORDER BY a.date_absence DESC`
         );
         res.json(result.rows);
-    } catch (err) { res.status(500).json({ message: 'Erreur' }); }
+    } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 app.post('/api/absences', async (req, res) => {
+    const { stagiaire_id, module_id } = req.body;
     try {
-        await pool.query('INSERT INTO absences (stagiaire_id, module_id, justifiee) VALUES ($1, $2, false)', 
-            [req.body.stagiaire_id, req.body.module_id]);
+        await pool.query(
+            'INSERT INTO absences (stagiaire_id, module_id, justifiee) VALUES ($1, $2, false)',
+            [stagiaire_id, module_id]
+        );
         res.json({ message: 'Absence ajoutée' });
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 app.put('/api/absences/:id/justifier', async (req, res) => {
     try {
-        await pool.query('UPDATE absences SET justifiee = true WHERE id = $1', [req.params.id]);
+        await pool.query('UPDATE absences SET justifiee=true WHERE id=$1', [req.params.id]);
         res.json({ message: 'Justifiée' });
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 app.delete('/api/absences/:id', async (req, res) => {
     try {
-        await pool.query('DELETE FROM absences WHERE id = $1', [req.params.id]);
+        await pool.query('DELETE FROM absences WHERE id=$1', [req.params.id]);
         res.json({ message: 'Supprimée' });
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// EMPLOI
+// EMPLOI DU TEMPS
 app.get('/api/emploi/:classeId', async (req, res) => {
     try {
         const result = await pool.query(
@@ -230,12 +171,13 @@ app.get('/api/emploi/:classeId', async (req, res) => {
              FROM emplois_du_temps e
              JOIN modules m ON e.module_id = m.id
              WHERE e.classe_id = $1
-             ORDER BY CASE e.jour WHEN 'Lundi' THEN 1 WHEN 'Mardi' THEN 2 WHEN 'Mercredi' THEN 3 
+             ORDER BY CASE e.jour 
+             WHEN 'Lundi' THEN 1 WHEN 'Mardi' THEN 2 WHEN 'Mercredi' THEN 3 
              WHEN 'Jeudi' THEN 4 WHEN 'Vendredi' THEN 5 ELSE 6 END, e.heure_debut`,
             [req.params.classeId]
         );
         res.json(result.rows);
-    } catch (err) { res.status(500).json({ message: 'Erreur' }); }
+    } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 app.post('/api/emploi', async (req, res) => {
@@ -250,10 +192,11 @@ app.post('/api/emploi', async (req, res) => {
 });
 
 app.put('/api/emploi/:id', async (req, res) => {
+    const { jour, heure_debut, heure_fin, module_id, salle } = req.body;
     try {
         await pool.query(
             'UPDATE emplois_du_temps SET jour=$1, heure_debut=$2, heure_fin=$3, module_id=$4, salle=$5 WHERE id=$6',
-            [req.body.jour, req.body.heure_debut, req.body.heure_fin, req.body.module_id, req.body.salle, req.params.id]
+            [jour, heure_debut, heure_fin, module_id, salle, req.params.id]
         );
         res.json({ message: 'Modifié' });
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -261,23 +204,27 @@ app.put('/api/emploi/:id', async (req, res) => {
 
 app.delete('/api/emploi/:id', async (req, res) => {
     try {
-        await pool.query('DELETE FROM emplois_du_temps WHERE id = $1', [req.params.id]);
+        await pool.query('DELETE FROM emplois_du_temps WHERE id=$1', [req.params.id]);
         res.json({ message: 'Supprimé' });
     } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 // MODULES & CLASSES
 app.get('/api/modules', async (req, res) => {
-    try { const result = await pool.query('SELECT * FROM modules ORDER BY nom_module'); res.json(result.rows); } 
-    catch (err) { res.status(500).json({ message: 'Erreur' }); }
+    try {
+        const result = await pool.query('SELECT * FROM modules ORDER BY nom_module');
+        res.json(result.rows);
+    } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 app.get('/api/classes', async (req, res) => {
-    try { const result = await pool.query('SELECT * FROM classes ORDER BY nom_classe'); res.json(result.rows); } 
-    catch (err) { res.status(500).json({ message: 'Erreur' }); }
+    try {
+        const result = await pool.query('SELECT * FROM classes ORDER BY nom_classe');
+        res.json(result.rows);
+    } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/health', (req, res) => res.json({ status: 'ok', service: 'SGSN-CMC' }));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => console.log(`API running on ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`SGSN-CMC running on port ${PORT}`));

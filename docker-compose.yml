@@ -1,12 +1,33 @@
 version: '3.8'
 
+networks:
+  sgsn-network:
+    driver: bridge
+
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: sgsn-db
+    networks:
+      - sgsn-network
+    environment:
+      - POSTGRES_DB=sgsn_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=sgsn2026
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+
   app:
     build: .
+    container_name: sgsn-app
+    networks:
+      - sgsn-network
     ports:
       - "80:3000"
     environment:
-      - DB_HOST=db
+      - DB_HOST=sgsn-db
       - DB_PORT=5432
       - DB_NAME=sgsn_db
       - DB_USER=postgres
@@ -15,16 +36,6 @@ services:
     depends_on:
       - db
     restart: always
-
-  db:
-    image: postgres:16-alpine
-    environment:
-      - POSTGRES_DB=sgsn_db
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=sgsn2026
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
 
 volumes:
   postgres_data:

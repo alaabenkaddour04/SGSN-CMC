@@ -4,109 +4,174 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SGSN CMC | Connexion</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; position: relative; overflow: hidden; }
-        .bg-shapes { position: absolute; width: 100%; height: 100%; overflow: hidden; z-index: 0; }
-        .shape { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4; animation: float 20s infinite; }
-        .shape-1 { width: 400px; height: 400px; background: #3b82f6; top: -100px; left: -100px; animation-delay: 0s; }
-        .shape-2 { width: 300px; height: 300px; background: #06b6d4; top: 50%; right: -50px; animation-delay: 5s; }
-        .shape-3 { width: 350px; height: 350px; background: #8b5cf6; bottom: -100px; left: 30%; animation-delay: 10s; }
-        @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -30px) scale(1.1); } 66% { transform: translate(-20px, 20px) scale(0.9); } }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { min-height: 100vh; background: #f5f5f5; display: flex; flex-direction: column; }
+
+        .header { background: #f5a623; box-shadow: 0 2px 10px rgba(0,0,0,0.15); }
+        .header-top { background: #d4820f; padding: 5px 40px; display: flex; justify-content: flex-end; gap: 20px; }
+        .header-top span { color: white; font-size: 12px; }
+        .header-main { padding: 12px 40px; display: flex; align-items: center; justify-content: space-between; }
+        .header-logo { display: flex; align-items: center; gap: 15px; }
+        .header-logo img { height: 55px; object-fit: contain; }
+        .header-logo-text h1 { color: white; font-size: 20px; font-weight: 800; }
+        .header-logo-text p { color: rgba(255,255,255,0.85); font-size: 12px; margin-top: 2px; }
+        .header-nav { display: flex; gap: 5px; }
+        .header-nav a { color: white; text-decoration: none; padding: 7px 15px; border-radius: 6px; font-size: 13px; font-weight: 500; transition: background 0.2s; }
+        .header-nav a:hover { background: rgba(255,255,255,0.2); }
+
+        .banner { background: linear-gradient(135deg, #f5a623, #d4820f); padding: 40px; text-align: center; }
+        .banner h2 { color: white; font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+        .banner p { color: rgba(255,255,255,0.88); font-size: 14px; }
+
+        .main-content { flex: 1; display: flex; align-items: center; justify-content: center; padding: 50px 20px; gap: 60px; }
+
+        .info-section { max-width: 380px; }
+        .info-section h3 { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 12px; }
+        .info-section p { color: #666; font-size: 14px; line-height: 1.7; margin-bottom: 24px; }
+
+        .feature-list { list-style: none; }
+        .feature-list li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .feature-icon { width: 38px; height: 38px; background: #fff8e8; border: 1px solid rgba(245,166,35,0.3); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .feature-text strong { display: block; font-size: 14px; color: #222; }
+        .feature-text span { font-size: 12px; color: #999; }
+
+        .login-card { background: white; border-radius: 16px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 4px 30px rgba(0,0,0,0.1); border-top: 4px solid #f5a623; }
+        .login-card-header { text-align: center; margin-bottom: 28px; }
+        .login-card-header h3 { font-size: 22px; font-weight: 700; color: #1a1a1a; }
+        .login-card-header p { font-size: 13px; color: #888; margin-top: 6px; }
+
+        .form-group { margin-bottom: 18px; }
+        .form-label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 7px; }
+        .input-wrapper { position: relative; }
+        .input-svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); }
+        .form-input { width: 100%; padding: 12px 12px 12px 42px; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: 14px; color: #1a1a1a; outline: none; transition: all 0.2s; background: #fafafa; }
+        .form-input:focus { border-color: #f5a623; background: white; box-shadow: 0 0 0 3px rgba(245,166,35,0.12); }
+        .form-input::placeholder { color: #ccc; }
+
+        .btn-login { width: 100%; padding: 13px; background: linear-gradient(135deg, #f5a623, #e8951a); border: none; border-radius: 10px; color: white; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 6px; }
+        .btn-login:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(245,166,35,0.45); }
+        .btn-login:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+        .error-box { display: none; padding: 11px; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; color: #dc2626; font-size: 13px; text-align: center; margin-bottom: 16px; }
+
+        .footer { background: #1a1a1a; color: #666; text-align: center; padding: 18px; font-size: 12px; }
+        .footer span { color: #f5a623; }
     </style>
 </head>
 <body>
-    <div class="bg-shapes">
-        <div class="shape shape-1"></div>
-        <div class="shape shape-2"></div>
-        <div class="shape shape-3"></div>
+    <header class="header">
+        <div class="header-top">
+            <span>+212 5XX-XXXXXX</span>
+            <span>contact@cmc.ac.ma</span>
+            <span>cmc.ac.ma</span>
+        </div>
+        <div class="header-main">
+            <div class="header-logo">
+                <img src="data:image/png;base64,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" alt="CMC Logo">
+                <div class="header-logo-text">
+                    <h1>SGSN — CMC Nouaceur</h1>
+                    <p>Système de Gestion Scolaire Numérique</p>
+                </div>
+            </div>
+            <nav class="header-nav">
+                <a href="#">Accueil</a>
+                <a href="#">A propos</a>
+                <a href="#">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="banner">
+        <h2>Bienvenue sur SGSN</h2>
+        <p>Plateforme numerique de gestion scolaire — CMC Nouaceur 2026</p>
     </div>
 
-    <div class="glass p-8 md:p-12 w-full max-w-md z-10 animate-fade-in">
-        <!-- Logo CMC -->
-        <div class="text-center mb-8">
-            <div class="mb-6 flex justify-center">
-                <img src="https://cmc.ac.ma/sites/default/files/2023-01/logo-cmc.png" alt="CMC Logo" 
-                     class="h-20 w-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-300 bg-white/10 p-3 rounded-2xl"
-                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzNiODJmNiIgcng9IjE1Ii8+PHRleHQgeD0iNTAiIHk9IjY1IiBmb250LXNpemU9IjQwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+Q01DPC90ZXh0Pjwvc3ZnPg=='">
-            </div>
-            <h1 class="text-3xl font-extrabold text-white mb-2 tracking-tight">SGSN <span class="text-blue-400">CMC</span></h1>
-            <p class="text-slate-400 text-sm">Système de Gestion Scolaire Numérique</p>
-            <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full">
-                <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                <span class="text-xs text-blue-400 font-medium">Cloud Computing ID</span>
-            </div>
+    <div class="main-content">
+        <div class="info-section">
+            <h3>Gerez votre espace scolaire</h3>
+            <p>SGSN est la plateforme digitale officielle du CMC Nouaceur pour la gestion des stagiaires, notes, absences et emplois du temps.</p>
+            <ul class="feature-list">
+                <li>
+                    <div class="feature-icon">
+                        <svg width="20" height="20" fill="none" stroke="#f5a623" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </div>
+                    <div class="feature-text">
+                        <strong>Gestion des Notes</strong>
+                        <span>Saisie et consultation en temps reel</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="feature-icon">
+                        <svg width="20" height="20" fill="none" stroke="#f5a623" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </div>
+                    <div class="feature-text">
+                        <strong>Emploi du Temps</strong>
+                        <span>Planning organise et accessible</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="feature-icon">
+                        <svg width="20" height="20" fill="none" stroke="#f5a623" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div class="feature-text">
+                        <strong>Suivi des Absences</strong>
+                        <span>Gestion et justification simplifiees</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="feature-icon">
+                        <svg width="20" height="20" fill="none" stroke="#f5a623" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+                    </div>
+                    <div class="feature-text">
+                        <strong>Cloud Azure</strong>
+                        <span>Deploye sur Microsoft Azure</span>
+                    </div>
+                </li>
+            </ul>
         </div>
 
-        <form id="loginForm" class="space-y-5">
-            <div>
-                <label class="block text-slate-300 text-sm font-medium mb-2">Adresse Email</label>
-                <div class="relative">
-                    <input type="email" id="email" required 
-                        class="w-full pl-11 pr-4 py-3.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                        placeholder="exemple@cmc.ma">
-                    <svg class="absolute left-4 top-3.5 h-5 w-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
-                    </svg>
-                </div>
+        <div class="login-card">
+            <div class="login-card-header">
+                <h3>Connexion</h3>
+                <p>Entrez vos identifiants pour acceder a votre espace</p>
             </div>
 
-            <div>
-                <label class="block text-slate-300 text-sm font-medium mb-2">Mot de passe</label>
-                <div class="relative">
-                    <input type="password" id="pass" required 
-                        class="w-full pl-11 pr-12 py-3.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                        placeholder="••••••••">
-                    <svg class="absolute left-4 top-3.5 h-5 w-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                    </svg>
+            <div class="error-box" id="errorBox"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">Adresse Email</label>
+                    <div class="input-wrapper">
+                        <svg class="input-svg" width="16" height="16" fill="none" stroke="#bbb" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                        <input type="email" id="email" class="form-input" placeholder="exemple@cmc.ma" required>
+                    </div>
                 </div>
-            </div>
-
-            <div id="errorMsg" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-lg text-sm text-center"></div>
-
-            <button type="submit" id="submitBtn" 
-                class="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-500/30 transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 group">
-                <span id="btnText">Se Connecter</span>
-                <svg id="btnArrow" class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                </svg>
-            </button>
-        </form>
-
-        <div class="mt-8 pt-6 border-t border-slate-700/50">
-            <p class="text-center text-slate-500 text-xs mb-4 uppercase tracking-wider">Comptes de Démo</p>
-            <div class="grid grid-cols-2 gap-3 text-xs">
-                <div class="p-3 bg-slate-800/50 rounded-lg text-center border border-slate-700/50 hover:border-blue-500/30 transition-colors">
-                    <span class="block text-blue-400 font-bold mb-1">👤 Admin</span>
-                    <span class="text-slate-400">kawtar@sgsn.ma</span>
+                <div class="form-group">
+                    <label class="form-label">Mot de passe</label>
+                    <div class="input-wrapper">
+                        <svg class="input-svg" width="16" height="16" fill="none" stroke="#bbb" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+                    </div>
                 </div>
-                <div class="p-3 bg-slate-800/50 rounded-lg text-center border border-slate-700/50 hover:border-green-500/30 transition-colors">
-                    <span class="block text-green-400 font-bold mb-1">🎓 Étudiant</span>
-                    <span class="text-slate-400">alaa@sgsn.ma</span>
-                </div>
-            </div>
-            <p class="text-center text-slate-600 text-xs mt-3">Mot de passe: <span class="font-mono text-slate-400">123456</span></p>
-        </div>
-
-        <div class="mt-8 text-center">
-            <p class="text-slate-600 text-xs">© 2026 CMC Nouaceur — Infrastructure Digitale</p>
+                <button type="submit" class="btn-login" id="submitBtn">Se Connecter</button>
+            </form>
         </div>
     </div>
+
+    <footer class="footer">
+        &copy; 2026 <span>CMC Nouaceur</span> — Filiere Infrastructure Digitale, Option Cloud Computing — Realise par Alaa Benkaddour
+    </footer>
 
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
-            const btnText = document.getElementById('btnText');
-            const errorDiv = document.getElementById('errorMsg');
-            
+            const errorBox = document.getElementById('errorBox');
+
             btn.disabled = true;
-            btnText.textContent = 'Connexion...';
-            errorDiv.classList.add('hidden');
+            btn.textContent = 'Connexion en cours...';
+            errorBox.style.display = 'none';
 
             try {
                 const res = await fetch('/api/auth/login', {
@@ -114,30 +179,31 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         email: document.getElementById('email').value,
-                        password: document.getElementById('pass').value
+                        password: document.getElementById('password').value
                     })
                 });
-                
+
                 const data = await res.json();
-                
+
                 if (res.ok) {
                     localStorage.setItem('user', JSON.stringify(data));
-                    btnText.textContent = 'Redirection...';
+                    btn.textContent = 'Connexion reussie!';
+                    btn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
                     const routes = {
                         'Admin': '/admin/dashboard.html',
                         'Gestionnaire': '/gestion/dashboard.html',
                         'Professeur': '/prof/dashboard.html',
                         'Etudiant': '/student/dashboard.html'
                     };
-                    setTimeout(() => window.location.href = routes[data.role] || '/', 500);
+                    setTimeout(() => window.location.href = routes[data.role] || '/', 800);
                 } else {
-                    throw new Error(data.message);
+                    throw new Error(data.message || 'Identifiants incorrects');
                 }
             } catch (err) {
-                errorDiv.textContent = err.message;
-                errorDiv.classList.remove('hidden');
+                errorBox.textContent = err.message;
+                errorBox.style.display = 'block';
                 btn.disabled = false;
-                btnText.textContent = 'Se Connecter';
+                btn.textContent = 'Se Connecter';
             }
         });
     </script>
